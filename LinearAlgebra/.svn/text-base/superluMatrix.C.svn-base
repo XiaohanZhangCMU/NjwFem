@@ -1,0 +1,477 @@
+#include<iostream>
+#include<cstdlib>
+#include<cmath>
+#include<set>
+#include<vector>
+
+// Nproc ... for pthreaded version
+
+#define Nproc 1
+
+#if (Nproc > 1)
+  #include "pdsp_defs.h"
+#else
+  #include "slu_ddefs.h"
+#endif
+
+class superluMV
+{
+public:
+  class vector;
+  class matrix;
+
+  superluMV(void *) {}
+  superluMV(int &argc, char ***argv) {}
+
+  ~superluMV() {
+    #if Nproc > 1
+      cout << "~superluMV(): p-thread matrix class with Nproc = "
+	   << Nproc << endl;
+    #else
+      cout << "~superluMV(): serial matrix class" << endl;
+    #endif
+  }
+
+  class matrix
+  {
+  public:
+    matrix(FeMdata mdata);
+    ~matrix();
+    
+    void zero();
+    void assemble(int, int*, double*);
+    void assemble(int, int*, double*, superluMV::vector&, double*);
+    void assemblepc(int, int*, double*);    
+
+    void times(vector &x, vector &y);   // y = A x 
+
+    void solve(vector&, vector&);    
+    void reSolve(vector&, vector&);    
+  private:
+    int n;
+    double *a;      // stores non-zero matrix entries
+    double *dd;     // scaling factor for rows
+
+    int  *irow;     // contains row indicies
+    int *jcol;     // index to nonzero entries stored in irow[] and a[]
+
+    SuperMatrix A, L, U;  
+    int *perm_r;          // row permutations from partial pivoting 
+    int *perm_c;          // column permutation vector 
+  };
+
+  class vector
+  {
+  public:
+    vector(int size) : n(size) 
+    {
+      if( !(v = doubleMalloc(n)) ) assert(false); 
+      
+      dCreate_Dense_Matrix(&V, n, 1, v, n, SLU_DN, SLU_D, SLU_GE);
+
+      return;
+    }
+    
+    ~vector() 
+    {
+      SUPERLU_FREE (v);
+      Destroy_SuperMatrix_Store(&V);
+
+      return;
+    }
+    
+    vector& zero();
+    const int length() { return(n); }
+    vector& operator=(const vector&);
+
+    double normInfinity();
+    vector& operator+=(vector&);
+    vector& operator-=(vector&);
+    
+    double operator[](int i) { return(v[i]); }
+
+    void assemble(int, int*, double*);
+    void extract (int, int*, double*) const;
+    void setvalues(int, int*, double*);
+    
+    const double* buffer() {return(v);}
+  private:
+    int n;
+    double *v;
+    SuperMatrix V;
+    
+    friend void matrix::solve(vector &, vector&);
+    friend void matrix::reSolve(vector &, vector&);
+    friend void matrix::times(vector &x, vector &y);   // y = A x 
+    friend void matrix::assemble(int, int*, double *a, vector&, double*);
+  };
+};
+
+superluMV::vector& superluMV::vector::zero()  
+{ 
+  for(int i = 0; i < n; i++) v[i] = 0.0; 
+
+  return(*this);
+}
+
+void superluMV::vector::assemble(int nvar, int index[], double fe[])
+{
+#ifdef DeBug
+  for(int i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "superluMV::vector::assemble(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(int i = 0; i < nvar; i++) v[index[i]] += fe[i];
+}
+
+void superluMV::vector::setvalues(int nvar, int index[], double fe[])
+{
+#ifdef DeBug
+  for(int i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "superluMV::vector::setvalues(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(int i = 0; i < nvar; i++) v[index[i]] = fe[i];
+}
+
+void superluMV::vector::extract(int nvar, int index[], double fe[]) const
+{
+#ifdef DeBug
+  for(int i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "superluMV::vector::extract(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(int i = 0; i < nvar; i++) fe[i] = v[index[i]];
+}
+
+superluMV::vector& superluMV::vector::operator=(const vector &a)
+{
+  if(this != &a)
+    {
+    for(int i = 0; i < n; i++) v[i] = a.v[i];
+    }
+
+  return(*this);
+}
+
+
+superluMV::vector& superluMV::vector::operator+=(vector &a)
+{
+  for(int i = 0; i < n; i++) v[i] += a.v[i];
+
+  return(*this);
+}
+
+superluMV::vector& superluMV::vector::operator-=(vector &a)
+{
+  for(int i = 0; i < n; i++) v[i] -= a.v[i];
+
+  return(*this);
+}
+
+double superluMV::vector::normInfinity()
+{
+  double vmax = fabs(v[0]);
+
+  for(int i = 1; i < n; i++)
+    if(fabs(v[i]) > vmax) vmax = fabs(v[i]);
+
+  return(vmax);
+}
+
+superluMV::matrix::matrix(FeMdata mdata) : n(mdata.nvar)
+{
+  // Set up the indexing arrays for the sparse representation
+  // of a matrix used by superLU etc.
+
+  feMesh *mm = mdata.mm;
+
+  assert(n == mm->ndof());
+
+  if ( !(perm_r = intMalloc(n)) ) assert(false);
+  if ( !(perm_c = intMalloc(n)) ) assert(false);
+
+  ::vector<set<int> > cols(n);
+  
+  for (feMesh::feiterator feit = mm->febegin(); feit != mm->feend(); feit++ )
+    {
+    felement ee = *feit;
+
+    // dd will have dof sorted (improves efficiency)
+
+    set<int> dd(ee.dof, ee.dof+ee.ndof());
+
+    for(int i = 0; i < ee.ndof(); i++) 
+      cols[ee.dof[i]].insert(dd.begin(), dd.end());
+    }  
+
+  // determine the number of non-zero's
+
+  if( !(jcol = intMalloc(n+1)) ) assert(false);
+  
+  jcol[0] = 0;
+
+  for(int j = 0; j < n; j++) jcol[j+1] = jcol[j] + cols[j].size();
+
+  if( !(irow = intMalloc(jcol[n])) ) assert(false);
+
+  // sparse storage requires row indicies to be monotone assending
+  // this code assumes that the sets cols[j] are sorted assending
+
+  for(int j = 0; j < n; j++) 
+    {
+    set<int>::iterator cj = cols[j].begin();
+
+    for(int i = 0; i < (int) cols[j].size(); i++) irow[jcol[j] + i] = *(cj++);
+    }
+
+
+  if( !(dd = new double [n]       ) ) assert(false);
+  if( !(a  = doubleMalloc(jcol[n])) ) assert(false);
+
+  dCreate_CompCol_Matrix(&A, n, n, jcol[n], a, irow, jcol, 
+			 SLU_NC, SLU_D, SLU_GE);
+
+  return;
+}
+
+superluMV::matrix::~matrix() 
+{
+  delete [] dd;
+
+  SUPERLU_FREE (perm_r);
+  SUPERLU_FREE (perm_c);
+
+  Destroy_CompCol_Matrix(&A);
+  Destroy_SuperNode_Matrix(&L);
+  Destroy_CompCol_Matrix(&U);
+}
+
+void superluMV::matrix::assemblepc(int nvar, int index[], double *a)
+{
+  return;    // preconditioner assemble for itterative schemes
+}
+
+void superluMV::matrix::assemble(int nvar, int index[], double *ae)
+{
+  int i,j;
+  int k;
+
+#ifdef DeBug
+  for(i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+	cerr << "superluMV::matrix::assemble(): Index out of range: index[" 
+	     << i << "] = " 
+	     << index[i] << ", n = " << n << endl;
+
+	throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(j = 0; j < nvar; j++)
+  for(i = 0; i < nvar; i++)
+    {
+      int left  = jcol[ index[j]   ];   // find index[i] in irow[left,right)
+      int right = jcol[ index[j]+1 ];
+      
+      for(k = (left+right)/2; k != left; k = (left+right)/2)
+	{
+	  if(irow[k] <= index[i]) left  = k;
+	  else                    right = k;
+	}
+      
+      if(irow[k] == index[i]) a[k] += ae[i*nvar+j];
+      else                    assert(false);
+    }
+
+  return;
+}
+  
+void superluMV::matrix::assemble(int nvar, int index[], double *ae, 
+			  superluMV::vector& f, double *fe)
+{
+  int i,j;
+  int k;
+
+#ifdef DeBug
+  for(i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "superluMV::matrix::assemble(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+
+  for(j = 0; j < nvar; j++)
+    {
+    f.v[index[j]] += fe[j];
+
+    for(i = 0; i < nvar; i++)
+      {
+      int left  = jcol[ index[j]   ];   // find index[i] in irow[left,right)
+      int right = jcol[ index[j]+1 ];
+      
+      for(k = (left+right)/2; k != left; k = (left+right)/2)
+	{
+	  if(irow[k] <= index[i]) left  = k;
+	  else                    right = k;
+	}
+      
+      if(irow[k] == index[i]) a[k] += ae[i*nvar+j];
+      else                    assert(false);
+      }
+    }
+
+  return;
+}
+
+void superluMV::matrix::zero()
+{
+  for(int i = 0; i < jcol[n]; i++) a[i] = 0.0;
+
+  return;
+}
+
+void superluMV::matrix::times(superluMV::vector &x, superluMV::vector &y) 
+{
+  int j;
+  int k;
+
+  assert(x.length() == n);
+  assert(y.length() == n);
+
+  y.zero();
+
+  for(j = 0; j < n; j++)
+    {  
+    for(k = jcol[j]; k < jcol[j+1]; k++) y.v[irow[k]] += a[k] * x.v[j];
+    }
+
+  return;
+}
+
+void superluMV::matrix::solve(superluMV::vector& u, superluMV::vector& f) 
+{
+  int info;
+
+  assert(u.length() == n);
+  assert(f.length() == n);
+
+  // scale the rows
+
+  int i, j, k;
+
+  for(i = 0; i < n; i++) dd[i] = 1.0;
+
+  for(j = 0; j < n; j++) 
+    {
+    for(k = jcol[j]; k < jcol[j+1]; k++) 
+      {
+	double absak = fabs(a[k]);
+
+	i = irow[k];
+
+	if(absak > dd[i]) dd[i] = absak;
+      }
+    }
+
+  for(j = 0; j < n; j++) 
+    {
+    u.v[j] = f.v[j] / dd[j];
+
+    for(k = jcol[j]; k < jcol[j+1]; k++) a[k] /= dd[irow[k]];
+    }
+
+#if (Nproc > 1)
+  cerr << "calling pdgssv()\n";
+
+  pdgssv(Nproc, &A, perm_c, perm_r, &L, &U, &(u.V), &info);
+
+  cerr << "pdgssv() completed\n";
+#else
+  superlu_options_t options;
+  set_default_options(&options);
+  // options.ColPerm = NATURAL;
+
+  SuperLUStat_t stat;
+  StatInit(&stat);
+
+  dgssv(&options, &A, perm_c, perm_r, &L, &U, &(u.V), &stat, &info);
+
+  StatFree(&stat);
+#endif
+
+  if(info != 0) 
+    {  
+      cout << "superluMV::matrix::solve(): info = " << info << endl;
+      assert(info != 0);
+    }
+
+ return;
+}
+
+void superluMV::matrix::reSolve(superluMV::vector& u, superluMV::vector& f) 
+{ 
+  int info;
+
+  assert(u.length() == n);
+  assert(f.length() == n);
+
+  for(int i = 0; i < n; i++) u.v[i] = f.v[i] / dd[i];
+
+#if (Nproc > 1)
+  Gstat_t stat;
+
+  dgstrs(NOTRANS, &L, &U, perm_c, perm_r, &(u.V), &stat, &info);
+#else
+  SuperLUStat_t stat;
+  StatInit(&stat);
+
+  dgstrs(NOTRANS, &L, &U, perm_c, perm_r, &(u.V), &stat, &info);
+
+  StatFree(&stat);
+#endif
+
+  if(info != 0) 
+    {  
+      cout << "superluMV::matrix::reSolve(): info = " << info << endl;
+      assert(info != 0);
+    }
+
+ return;
+}

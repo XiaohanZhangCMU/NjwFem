@@ -1,0 +1,231 @@
+// Finite Element Mesh Utilitly Functions 
+
+#ifndef __UTILITY_C__
+#define __UTILITY_C__
+
+#include<cstdlib>
+#include<set>
+#include<map>
+
+void sortDof(int n, int *nn, int *dof)   /* sort ascending */
+{
+int i,j, gap, temp;
+
+// Note: both nn[] and dof[] get modified
+
+ vector<int > pp(n), dof0(n);
+
+ for(i = 0; i < n; i++) {pp[i] = i; dof0[i] = dof[i];}
+
+for(gap = n/2; gap > 0; gap /=2)
+for(i = gap; i < n; i++)
+for(j = i-gap; j >= 0 && nn[j] > nn[j+gap]; j -= gap)
+  {
+  temp = nn[j]; nn[j] = nn[j+gap]; nn[j+gap] = temp;
+  temp = pp[j]; pp[j] = pp[j+gap]; pp[j+gap] = temp;
+  }
+
+ for(i = 0; i < n; i++) dof[pp[i]] = dof0[i];
+
+ return;
+}
+
+void sortPermutation(int n, int *nn, int *pp)   // return permutation to sort
+{
+int i,j, gap, temp;
+
+// Note: both nn[] and pp[] get modified
+
+ for(i = 0; i < n; i++) pp[i] = i;
+
+for(gap = n/2; gap > 0; gap /=2)
+for(i = gap; i < n; i++)
+for(j = i-gap; j >= 0 && nn[j] > nn[j+gap]; j -= gap)
+  {
+  temp = nn[j]; nn[j] = nn[j+gap]; nn[j+gap] = temp;
+  temp = pp[j]; pp[j] = pp[j+gap]; pp[j+gap] = temp;
+  }
+
+ return;
+}
+
+void nzRowBand(feMesh &mm, int &nz, int &bb)
+{
+  // Determine the maxumum number of non-zero elements in any row
+  // of the global matrix and the band width
+
+  vector<set<int> > rows(mm.ndof());
+  
+  for (feMesh::feiterator feit = mm.febegin(); feit != mm.feend(); feit++ )
+    {
+    felement ee = *feit;
+
+    // dd will have dof sorted (improves efficiency)
+
+    set<int> dd(ee.dof, ee.dof+ee.ndof());
+
+    for(int i = 0; i < ee.ndof(); i++) 
+      rows[ee.dof[i]].insert(dd.begin(), dd.end());
+    }
+  
+  int temp;  
+  unsigned int nzr = 0;
+
+  for(int i = 0; i < mm.ndof(); i++) 
+    {
+    if(nzr < rows[i].size()) nzr = rows[i].size();
+
+    if(rows[i].size() > 0) 
+      {
+	temp = *rows[i].rbegin() - i + 1;
+    
+	if(bb < temp) bb = temp;
+      }
+    }
+
+  nz = nzr;
+}
+
+int band(feMesh &mm)
+{
+  int bb = 0, dmin, dmax;
+
+  for (feMesh::feiterator feit = mm.febegin(); feit != mm.feend(); feit++ )
+    {
+    felement ee = *feit;
+
+    dmin = dmax = ee.dof[0];
+   
+    for(int j = 0; j < ee.ndof(); j++)
+      {
+      if(dmin > ee.dof[j]) dmin = ee.dof[j];
+      if(dmax < ee.dof[j]) dmax = ee.dof[j];
+      }
+    
+    if(bb < (dmax-dmin+1)) bb = dmax-dmin+1;
+    }
+ 
+  return(bb);
+}
+
+int nzRow(feMesh &mm)
+{
+  // Determine the maxumum number of non-zero elements in any row
+  // of the global matrix and the band width
+
+  vector<set<int> > rows(mm.ndof());
+  
+  for (feMesh::feiterator feit = mm.febegin(); feit != mm.feend(); feit++ )
+    {
+    felement ee = *feit;
+
+    // dd will have dof sorted (improves efficiency)
+
+    set<int> dd(ee.dof, ee.dof+ee.ndof());
+
+    for(int i = 0; i < ee.ndof(); i++) 
+      rows[ee.dof[i]].insert(dd.begin(), dd.end());
+    }
+  
+  unsigned int nz = 0;
+
+  for(int i = 0; i < mm.ndof(); i++) 
+    {
+    if(nz < rows[i].size()) nz = rows[i].size();
+    }
+
+  return(nz);
+}
+
+int nzRowLarge(feMesh &mm)
+{
+  // Estimate the maxumum number of non-zero elements in any row
+  // of the global matrix from a sample
+  
+  int nSample = 50000;
+
+  map<int, int> dofSample;
+
+  for(int i = 0; i < nSample; i++) dofSample[rand()%nSample] = i;
+
+  vector<set<int> > rows(nSample);
+  
+  for (feMesh::feiterator feit = mm.febegin(); feit != mm.feend(); feit++ )
+    {
+    felement ee = *feit;
+
+    // dd will have dof sorted (improves efficiency)
+
+    set<int> dd(ee.dof, ee.dof+ee.ndof());
+
+    for(int i = 0; i < ee.ndof(); i++)
+      {
+      int ii = ee.dof[i];
+
+      if(dofSample.find(ii) != dofSample.end())
+	{
+	  rows[dofSample[ii]].insert(dd.begin(), dd.end());
+	}
+      }
+    }
+  
+  unsigned int nz = 0;
+
+  for(int i = 0; i < nSample; i++) 
+    if(nz < rows[i].size()) nz = rows[i].size();
+
+  return(nz);
+}
+
+void sparseSetup(feMesh &mm, int **jcol, int **irow)
+{
+  // Set up the indexing arrays for the sparse representation
+  // of a matrix used by superLU etc.
+
+  // WARNING: This routine allocates memory but does not free it
+
+  vector<set<int> > cols(mm.ndof());
+  
+  for (feMesh::feiterator feit = mm.febegin(); feit != mm.feend(); feit++ )
+    {
+    felement ee = *feit;
+
+    // dd will have dof sorted (improves efficiency)
+
+    set<int> dd(ee.dof, ee.dof+ee.ndof());
+
+    for(int i = 0; i < ee.ndof(); i++) 
+      cols[ee.dof[i]].insert(dd.begin(), dd.end());
+    }  
+
+  *jcol = new int[mm.ndof()+1];
+
+  // determine the number of non-zero's
+
+  (*jcol)[0] = 0;
+
+  for(int j = 0; j < mm.ndof(); j++) 
+    (*jcol)[j+1] = (*jcol)[j] + cols[j].size();
+
+  *irow = new int[ (*jcol)[mm.ndof()] ];
+      
+  for(int j = 0; j < mm.ndof(); j++) 
+    {
+      set<int>::iterator cj = cols[j].begin();
+
+      for(int i = 0; i < (int) cols[j].size(); i++) 
+	(*irow)[*jcol[j] + i] = *(cj++);
+    }
+
+  return;
+}
+
+svector<3> cross(svector<3> &a, svector<3> &b)   // 3d cross product
+{
+  return svector<3>(a[1]*b[2]-a[2]*b[1], 
+		    a[2]*b[0]-a[0]*b[2], 
+		    a[0]*b[1]-a[1]*b[0]);
+}
+
+
+#endif                          // !defined(__UTILITY_C__)

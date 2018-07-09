@@ -1,0 +1,34 @@
+##
+##  Macros.
+##
+
+SHELL		= bash
+
+VPATH		= $(OJTDIR):$(DSTDIR)
+
+EXE		= $(EXEEXT)
+LIB		= $(LIBEXT)
+OBJ		= $(OBJEXT)
+
+AR		= $(ARPROG)
+CCINC           = -I. -I$(DSTDIR) -I$(INSDIR)
+CAT		= cat
+CP		= cp
+MKDIR		= mkdir
+MV              = mv
+RANLIB		= ranlib
+RM		= rm -f
+TOUCH		= touch
+TAIL		= tail
+HEAD		= head
+VERSION         = `../../myversion.sh`
+
+COMMONPASTIX_H	= 	$(INSDIR)/common_pastix.h	\
+			$(INSDIR)/api.h			\
+			$(INSDIR)/debug.h		\
+			$(INSDIR)/errors.h		\
+			$(INSDIR)/redefine_functions.h
+
+ifeq (${PASTIX_EZTRACE}, 1)
+     CCINC += -I../../eztrace-pastix/src -DPASTIX_EZTRACE
+endif

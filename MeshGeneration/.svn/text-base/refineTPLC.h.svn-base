@@ -1,0 +1,57 @@
+// construct the baracentric refinement of a mesh in a .tplc file
+
+#include<string>
+#include<fstream>
+#include<map>
+#include<vector>
+#include<cassert>
+#include"intArray.h"
+
+using namespace std;
+
+#include"../LinearAlgebra/svector.C"
+
+const int Nkey = 4;
+
+class vertexKey
+{
+public:
+  vertexKey(int i, int j, int k, int l)
+    {
+      key[0] = i; key[1] = j; key[2] = k, key[3] = l;
+
+      sort();
+    }
+      
+  int& operator[](int i) {return key[i];}
+  int operator[](const int i) const {return key[i];}
+
+  bool operator<(const vertexKey &k1) const
+  {
+    for(int i=0; i < Nkey; i++)    // less than operator
+      {
+	if(key[i] < k1[i]) return(true);
+	if(key[i] > k1[i]) return(false);
+      }
+
+    return false;       // they are equal
+  }
+
+  void sort()
+  {
+  int i,j,gap,temp;
+  
+  for(gap = Nkey/2; gap > 0; gap /=2)
+  for(i = gap; i < Nkey; i++)
+  for(j = i-gap; j >= 0 && key[j] < key[j+gap]; j -= gap)
+    {
+      temp = key[j];
+      key[j] = key[j+gap];
+      key[j+gap] = temp;
+    }
+  
+  return;
+  }
+  
+  int key[Nkey];
+};

@@ -1,0 +1,72 @@
+###############################################################################
+###############################################################################
+####                                                                       ####
+####                  T H E   A L i E N o r   T E A M                      ####
+####                                                                       ####
+####                  (C) LaBRI Universite Bordeaux I                      ####
+####                                                                       ####
+####  Description : Generic makefile for modules of project emilio         ####
+####                                                                       ####
+###############################################################################
+###############################################################################
+
+include ../../config.in
+include ../../all_macros
+
+##
+##  Macros.
+##
+
+INSDIR		= ../../../bin/$(HOSTARCH)
+COMMON_FLAGS    = -DVERSION='\"${VERSION}\"' -DX_ARCH$(HOSTARCH) -DDOF_CONSTANT
+DEBUG_FLAGS     = -DCOMMON_DEBUG -DSYMBOL_DEBUG -DDOF_DEBUG -DSOLVER_DEBUG -DORDER_DEBUG -DFAX_DEBUG -DSCOTCH_DEBUG -DDEBUG_BLEND -DBUBBLE_DEBUG -DPASTIX_DEBUG
+
+##
+##  General rules.
+##
+
+# Project building rules.
+
+debug		:
+			$(MKPROG) -f make_gen					\
+			OJTDIR="../obj/$(HOSTARCH)"				\
+			DSTDIR="../bin/$(HOSTARCH)"				\
+			INSDIR="$(INSDIR)"					\
+			CCPRG="$(CCPROG) $(CXXOPT)"				\
+			MPCCPRG="$(MPCCPROG) $(CXXOPT)"				\
+			CCOPT="$(CCFDEB) $(COMMON_FLAGS) $(DEBUG_FLAGS)"	\
+			LKOPT=""
+
+expor		:
+			$(MKPROG) -f make_gen					\
+			OJTDIR="../obj/$(HOSTARCH)"				\
+			DSTDIR="../bin/$(HOSTARCH)"				\
+			INSDIR="$(INSDIR)"					\
+			CCPRG="$(CCPROG) $(CXXOPT)"				\
+			MPCCPRG="$(MPCCPROG) $(CXXOPT)"				\
+			CCOPT="$(CCFOPT) $(COMMON_FLAGS)"			\
+			LKOPT="-s"
+
+install		:
+			$(MKPROG) -f make_gen install				\
+			OJTDIR="../obj/$(HOSTARCH)"				\
+			DSTDIR="../bin/$(HOSTARCH)"				\
+			INSDIR="$(INSDIR)"
+
+prof		:
+			$(MKPROG) -f make_gen					\
+			OJTDIR="../obj/$(HOSTARCH)"				\
+			DSTDIR="../bin/$(HOSTARCH)"				\
+			INSDIR="$(INSDIR)"					\
+			CCPRG="$(CCPROG)"					\
+			MPCCPRG="$(MPCCPROG)"					\
+			CCOPT="$(CCFOPT) -pg $(COMMON_FLAGS)"			\
+			LKOPT=""
+
+# Clean-up and archive rules.
+
+clean		:
+			$(MKPROG) -f make_gen clean				\
+			OJTDIR="../obj/$(HOSTARCH)"				\
+			DSTDIR="../bin/$(HOSTARCH)"				\
+			INSDIR="$(INSDIR)"

@@ -1,0 +1,23 @@
+tree			:
+				@if [ ! -d $(OJTDIR) ] ; then			\
+					sd1=`dirname $(OJTDIR)`;		\
+					if [ ! -d $${sd1} ] ; then		\
+						sd2=`dirname $${sd1}`;		\
+						if [ ! -d $${sd2} ] ; then	\
+							$(MKDIR) $${sd2}; 	\
+						fi;				\
+						$(MKDIR) $${sd1};		\
+					fi;					\
+					$(MKDIR) $(OJTDIR);		 	\
+				fi;
+				@if [ ! -d $(DSTDIR) ] ; then			\
+					sd1=`dirname $(DSTDIR)`;		\
+					if [ ! -d $${sd1} ] ; then		\
+						sd2=`dirname $${sd1}`;		\
+						if [ ! -d $${sd2} ] ; then	\
+							$(MKDIR) $${sd2}; 	\
+						fi;				\
+						$(MKDIR) $${sd1};		\
+					fi;					\
+					$(MKDIR) $(DSTDIR);		 	\
+				fi

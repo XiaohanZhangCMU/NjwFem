@@ -1,0 +1,46 @@
+\begin{type-func-vars}
+  \forkey{SUBROUTINE} \func{PASTIX\_FORTRAN\_CHECKMATRIX} ( & \var{DATA\_CHECK}\\
+                                                            & \var{PASTIX\_COMM},\\
+                                                            & \var{VERB},\\
+                                                            & \var{FLAGSYM},\\
+                                                            & \var{FLAGCOR},\\
+                                                            & \var{N},\\
+                                                            & \var{COLPTR},\\
+                                                            & \var{ROW},\\
+                                                            & \var{AVALS},\\
+                                                            & \var{LOC2GLOB})\\
+\end{type-func-vars}\\
+\begin{type-var}
+\hskip 0.8cm \type{pastix\_data\_ptr\_t}, INTENT(OUT)& :: \var{DATA\_CHECK}\\
+\hskip 0.8cm \type{MPI\_COMM}, INTENT(IN)& :: \var{PASTIX\_COMM}\\
+\hskip 0.8cm \type{INTEGER},   INTENT(IN)& :: \var{VERB} \\
+\hskip 0.8cm \type{INTEGER},   INTENT(IN)& :: \var{FLAGSYM} \\
+\hskip 0.8cm \type{INTEGER},   INTENT(IN)& :: \var{FLAGCOR} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN)& :: \var{N} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{COLPTR} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{ROW} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{AVALS} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{LOC2GLOB} \\
+\end{type-var}\\
+\begin{type-func-vars}
+  \forkey{END SUBROUTINE} \func{PASTIX\_FORTRAN\_CHECKMATRIX} &\\
+\index{Fonctions@Fonctions!\texttt{PASTIX\_FORTRAN\_CHECKMATRIX}}
+\end{type-func-vars}
+
+
+\begin{type-func-vars}
+  \forkey{SUBROUTINE} \func{PASTIX\_FORTRAN\_CHECKMATRIX\_END} ( & \var{DATA\_CHECK}\\
+                                                            & \var{VERB},\\
+                                                            & \var{ROW},\\
+                                                            & \var{AVALS})\\
+\end{type-func-vars}\\
+\begin{type-var}
+\hskip 0.8cm \type{pastix\_data\_ptr\_t}, INTENT(IN)& :: \var{DATA\_CHECK}\\
+\hskip 0.8cm \type{INTEGER},   INTENT(IN)& :: \var{VERB} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{ROW} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{AVALS} \\
+\end{type-var}\\
+\begin{type-func-vars}
+  \forkey{END SUBROUTINE} \func{PASTIX\_FORTRAN\_CHECKMATRIX\_END} &\\
+\index{Fonctions@Fonctions!\texttt{PASTIX\_FORTRAN\_CHECKMATRIX\_END}}
+\end{type-func-vars}

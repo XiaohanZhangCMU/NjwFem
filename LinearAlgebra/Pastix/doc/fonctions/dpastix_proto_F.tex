@@ -1,0 +1,20 @@
+  \preproc{\#include} \inc{``pastix\_fortran.h''}
+
+  \begin{type-var}
+    \type{pastix\_data\_ptr\_t} &  :: \var{pastix\_data}\\
+    \type{integer}              &  :: \var{pastix\_comm}\\
+    \type{pastix\_int\_t}       &  :: \var{n}, \var{rhs}, \var{ia(n+1)}, \var{ja(nnz)}\\
+    \type{pastix\_float\_t}     &  :: \var{avals(nnz)}, \var{b(n)}\\
+    \type{pastix\_int\_t}       &  :: \var{loc2glb(n)}, \var{perm(n)}, \var{invp(n)}, \var{iparm(64)}\\
+    \type{real}\st{}8           &  :: \var{dparm(64)}\\
+  \end{type-var}
+  
+  \begin{type-func-vars}
+    \forkey{call} \func{dpastix\_fortran} ( & \texttt{pastix\_data}, \texttt{pastix\_comm}, 
+                                              \texttt{n}, \texttt{ia}, \texttt{ja}, \texttt{avals},\\
+                                            & \texttt {loc2glob} \texttt{perm}, \texttt{invp}, 
+                                              \texttt{b}, \texttt{rhs}, \texttt{iparm}, \texttt{dparm} )\\
+  \label{proto:dpastix_fortran}
+  \index{Fonctions@Fonctions!\texttt{dpastix\_fortran}}
+
+  \end{type-func-vars}

@@ -1,0 +1,8 @@
+install				:	$(INSLST)
+					@for f in $(INSLST) ; do			\
+					d=$(INSDIR)/`basename "$$f"` ;			\
+					if [ ! -e "$$d" -o "$$f" -nt "$$d" ] ; then	\
+						echo "installing $$f to $(INSDIR)" ;	\
+						$(CP) "$$f" $(INSDIR);			\
+					fi;						\
+					done

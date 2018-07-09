@@ -1,0 +1,461 @@
+#include<iostream>
+#include<cstdlib>
+#include<cmath>
+#include<set>
+#include<vector>
+
+// Set Nproc to the number of processors for pardiso()
+
+#define Nproc 1
+
+// pardso functions are written in fortran so all arguments are pointers
+
+extern "C" int pardisoinit_(void *, int *, int *, int *, double *, int *);
+
+extern "C" int pardiso_
+    (void *, int *, int *, int *, int *, int *,
+     double *, int *, int *, int *, int *, int *,
+     int *, double *, double *, int *, double *);
+
+class pardisoMV
+{
+public:
+  class vector;
+  class matrix;
+
+  pardisoMV(void *) {}
+  pardisoMV(int &argc, char ***argv) {}
+
+  ~pardisoMV() {
+    #if Nproc > 1
+      cout << "~pardisoMV(): matrix class with Nproc = "
+	   << Nproc << endl;
+    #else
+      cout << "~pardisoMV(): serial matrix class" << endl;
+    #endif
+  }
+
+  class matrix
+  {
+  public:
+    matrix(FeMdata mdata);
+    ~matrix();
+    
+    void zero();
+    void assemble(int, int*, double*);
+    void assemble(int, int*, double*, pardisoMV::vector&, double*);
+    void assemblepc(int, int*, double*);    
+
+    void times(vector &x, vector &y);   // y = A x 
+
+    void solve(vector&, vector&);    
+    void reSolve(vector&, vector&);    
+  private:
+    int n;
+    double *dd;     // scaling factor for rows
+
+    int *jcol;      // contains column indicies
+    int *irow;      // index to nonzero entries stored in jcol[] and a[]
+    double *a;      // stores non-zero matrix entries
+
+    int    maxfct, mnum, msglvl, mtype;
+    void   *pt[64];
+    int    iparm[64];
+    double dparm[64];
+  };
+  
+  class vector
+  {
+  public:
+    vector(int size) : n(size) { if( !(v = new double [n]) ) assert(false); }
+    
+    ~vector() {delete [] v; }
+    
+    vector& zero();
+    const int length() { return(n); }
+    vector& operator=(const vector&);
+    
+    double normInfinity();
+    vector& operator+=(vector&);
+    vector& operator-=(vector&);
+    
+    double operator[](int i) { return(v[i]); }
+
+    void assemble(int, int*, double*);
+    void extract (int, int*, double*) const;
+    void setvalues(int, int*, double*);
+    
+    const double* buffer() {return(v);}
+  private:
+    int n;
+    double *v;
+    
+    friend void matrix::solve(vector &, vector&);
+    friend void matrix::reSolve(vector &, vector&);
+    friend void matrix::times(vector &x, vector &y);   // y = A x 
+    friend void matrix::assemble(int, int*, double *a, vector&, double*);
+  };
+};
+
+pardisoMV::vector& pardisoMV::vector::zero()  
+{ 
+  for(int i = 0; i < n; i++) v[i] = 0.0; 
+
+  return(*this);
+}
+
+void pardisoMV::vector::assemble(int nvar, int index[], double fe[])
+{
+#ifdef DeBug
+  for(int i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "pardisoMV::vector::assemble(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(int i = 0; i < nvar; i++) v[index[i]] += fe[i];
+}
+
+void pardisoMV::vector::setvalues(int nvar, int index[], double fe[])
+{
+#ifdef DeBug
+  for(int i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "pardisoMV::vector::setvalues(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(int i = 0; i < nvar; i++) v[index[i]] = fe[i];
+}
+
+void pardisoMV::vector::extract(int nvar, int index[], double uu[]) const
+{
+#ifdef DeBug
+  for(int i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "pardisoMV::vector::extract(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(int i = 0; i < nvar; i++) uu[i] = v[index[i]];
+}
+
+pardisoMV::vector& pardisoMV::vector::operator=(const vector &a)
+{
+  if(this != &a)
+    {
+    for(int i = 0; i < n; i++) v[i] = a.v[i];
+    }
+
+  return(*this);
+}
+
+
+pardisoMV::vector& pardisoMV::vector::operator+=(vector &a)
+{
+  for(int i = 0; i < n; i++) v[i] += a.v[i];
+
+  return(*this);
+}
+
+pardisoMV::vector& pardisoMV::vector::operator-=(vector &a)
+{
+  for(int i = 0; i < n; i++) v[i] -= a.v[i];
+
+  return(*this);
+}
+
+double pardisoMV::vector::normInfinity()
+{
+  double vmax = fabs(v[0]);
+
+  for(int i = 1; i < n; i++) if(fabs(v[i]) > vmax) vmax = fabs(v[i]);
+
+  return(vmax);
+}
+
+pardisoMV::matrix::matrix(FeMdata mdata) 
+  : n(mdata.nvar), maxfct(1), mnum(1), msglvl(0), mtype(11)
+{
+  // mtype = 11, real unsymmetric matrix
+
+  // Set up the indexing arrays for the sparse representation
+  // of a matrix used by pardiso etc.
+
+  feMesh *mm = mdata.mm;
+
+  assert(n == mm->ndof());
+
+  ::vector<set<int> > rows(n);
+  
+  for (feMesh::feiterator feit = mm->febegin(); feit != mm->feend(); feit++ )
+    {
+    felement ee = *feit;
+
+    // dd will have dof sorted (improves efficiency)
+
+    set<int> dd(ee.dof, ee.dof+ee.ndof());
+
+    for(int i = 0; i < ee.ndof(); i++) 
+      rows[ee.dof[i]].insert(dd.begin(), dd.end());
+    }  
+
+  // determine the number of non-zero's
+
+  if( !(irow = new int[n+1]) ) assert(false);
+  
+  irow[0] = 1;         // fortran indexing
+
+  for(int i = 0; i < n; i++) irow[i+1] = irow[i] + rows[i].size();
+
+  if( !(jcol = new int[ irow[n]-1 ]) ) assert(false);
+
+  // sparse storage requires column indicies to be monotone assending
+  // this code assumes that the sets rows[j] are sorted assending
+
+  for(int i = 0; i < n; i++) 
+    {
+      set<int>::iterator ri = rows[i].begin();
+
+      for(int j = 0; j < (int) rows[i].size(); j++)  
+	{
+	  jcol[irow[i] + j - 1] = *ri + 1;
+	  ri++;
+	}
+    }
+
+  if( !(dd = new double [n]        ) ) assert(false);
+  if( !(a  = new double [irow[n]-1]) ) assert(false);
+
+  // initialize pardiso (license etc.)
+
+  int error = 0;
+  int solver = 0;         // use sparse direct solver
+
+  iparm[0]  = 0;
+  iparm[2]  = Nproc;
+
+  pardisoinit_(pt,  &mtype, &solver, iparm, dparm, &error);
+
+  if (error != 0)
+    {
+    if(error == -10) cout << "pardisoinit_(): No license file found \n";
+    if(error == -11) cout << "pardisoinit_(): License is expired \n";
+    if(error == -12) cout << "pardisoinit_(): Wrong username or hostname \n";
+    assert(false);
+    }
+
+  return;
+}
+
+pardisoMV::matrix::~matrix() 
+{
+  delete [] irow;
+  delete [] jcol;
+  delete [] a;
+  delete [] dd;
+
+  int idum, error = 0, nrhs = 1, phase = -1;
+  double ddum;
+
+  pardiso_(pt, &maxfct, &mnum, &mtype, &phase,
+                       &n, &ddum, irow, jcol, &idum, &nrhs,
+                       iparm, &msglvl, &ddum, &ddum, &error,  dparm);
+
+  return;
+}
+
+void pardisoMV::matrix::assemblepc(int nvar, int index[], double *a)
+{
+  return;    // preconditioner assemble for itterative schemes
+}
+
+void pardisoMV::matrix::assemble(int nvar, int index[], double *ae)
+{
+  int i,j;
+  int k;
+
+#ifdef DeBug
+  for(i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+	cerr << "pardisoMV::matrix::assemble(): Index out of range: index[" 
+	     << i << "] = " 
+	     << index[i] << ", n = " << n << endl;
+
+	throw("Index out of range");
+      }
+    }
+#endif
+  
+  for(i = 0; i < nvar; i++)
+  for(j = 0; j < nvar; j++)
+    {
+      int left  = irow[ index[i]   ]-1; // find index[i]+1 in irow[left,right)
+      int right = irow[ index[i]+1 ]-1;
+      
+      for(k = (left+right)/2; k != left; k = (left+right)/2)
+	{
+	  if(jcol[k] <= index[j]+1) left  = k;
+	  else                      right = k;
+	}
+      
+      if(jcol[k] == index[j]+1) a[k] += ae[i*nvar+j];
+      else                      assert(false);
+    }
+
+  return;
+}
+  
+void pardisoMV::matrix::assemble(int nvar, int index[], double *ae, 
+			  pardisoMV::vector& f, double *fe)
+{
+  int i,j;
+  int k;
+
+#ifdef DeBug
+  for(i = 0; i < nvar; i++)
+    {
+    if((index[i] < 0) || (index[i] >= n))
+      {
+      cerr << "pardisoMV::matrix::assemble(): Index out of range: index[" 
+	   << i << "] = " 
+	   << index[i] << ", n = " << n << endl;
+
+      throw("Index out of range");
+      }
+    }
+#endif
+
+  for(i = 0; i < nvar; i++)
+    {
+    f.v[index[i]] += fe[i];
+
+    for(j = 0; j < nvar; j++)
+      {
+      int left  = irow[ index[i]   ]-1; // find index[i]+1 in irow[left,right)
+      int right = irow[ index[i]+1 ]-1;
+      
+      for(k = (left+right)/2; k != left; k = (left+right)/2)
+	{
+	  if(jcol[k] <= index[j]+1) left  = k;
+	  else                      right = k;
+	}
+      
+      if(jcol[k] == index[j]+1) a[k] += ae[i*nvar+j];
+      else                      assert(false);
+      }
+    }
+
+  return;
+}
+
+void pardisoMV::matrix::zero()
+{
+  for(int i = 0; i < irow[n]-1; i++) a[i] = 0.0;
+
+  return;
+}
+
+void pardisoMV::matrix::times(pardisoMV::vector &x, pardisoMV::vector &y) 
+{
+  int i;
+  int k;
+
+  assert(x.length() == n);
+  assert(y.length() == n);
+
+  y.zero();
+
+  for(i = 0; i < n; i++)
+    {  
+    for(k = irow[i]-1; k < irow[i+1]-1; k++) y.v[i] += a[k] * x.v[jcol[k]-1];
+    }
+
+  return;
+}
+
+void pardisoMV::matrix::solve(pardisoMV::vector& u, pardisoMV::vector& f) 
+{
+  assert(u.length() == n);
+  assert(f.length() == n);
+
+  // Scale rows
+
+  int i, k;
+
+  for(i = 0; i < n; i++) 
+    {
+    dd[i] = 1.0;
+
+    for(k = irow[i]-1; k < irow[i+1]-1; k++) 
+      {
+	double absak = fabs(a[k]);
+
+	if(absak > dd[i]) dd[i] = absak;
+      }
+
+    f.v[i] /= dd[i];
+
+    for(k = irow[i]-1; k < irow[i+1]-1; k++) a[k] /= dd[i];
+    }
+
+  // solve the equations
+
+  int error = 0, nrhs = 1, phase = 13, idum;
+
+  pardiso_(pt, &maxfct, &mnum, &mtype, &phase,
+	   &n, a, irow, jcol, &idum, &nrhs,
+	   iparm, &msglvl, f.v, u.v, &error,  dparm);
+
+
+  if(error != 0)
+    {
+      cout << "pardisoMV::matrix::solve(): error = " << error << endl;
+      assert(error == 0);
+    }
+
+ return;
+}
+
+void pardisoMV::matrix::reSolve(pardisoMV::vector& u, pardisoMV::vector& f) 
+{ 
+  assert(u.length() == n);
+  assert(f.length() == n);
+
+  // Scale rhs
+
+  for(int i = 0; i < n; i++) f.v[i] /= dd[i];
+
+  // solve the equations
+
+  int error = 0, nrhs = 1, phase = 33, idum;
+
+  pardiso_(pt, &maxfct, &mnum, &mtype, &phase,
+	   &n, a, irow, jcol, &idum, &nrhs,
+	   iparm, &msglvl, f.v, u.v, &error,  dparm);
+
+ return;
+}

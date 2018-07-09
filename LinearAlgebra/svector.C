@@ -1,0 +1,237 @@
+#ifndef __SVECTOR_C__
+#define __SVECTOR_C__
+
+#include<iostream>
+#include<cmath>
+
+// Small vector (svector) class (everything inlined)
+
+template<const int Ndim> class svector;
+template<const int Ndim> class smatrix;
+template<const int Ndim> class sbmatrix;
+template<const int Ndim> 
+           svector<Ndim> operator*(const double a, const svector<Ndim>& v);
+
+template<const int Ndim>
+class svector 
+{
+public:
+  svector();
+  svector(const svector&);
+  explicit svector(double *);
+  svector(double);        // only for Ndim = 1, otherwise double -> svectors
+  svector(double,double);
+  svector(double,double,double);
+
+  svector& zero();
+  double   dot(const svector&) const;
+  double norm() const;
+
+  svector  operator+(const svector&) const;
+  svector& operator+=(const svector&);
+  //xiaohan
+  svector& operator*=(double scalar);
+  svector& operator-=(const svector&);
+  svector  operator-() const;
+  svector  operator-(const svector&) const;
+  double   operator[](int) const;
+  double&  operator[](int);
+
+private:
+  double x[Ndim];
+
+  friend class smatrix<Ndim>;
+  friend class sbmatrix<Ndim>;
+  friend svector<Ndim> operator*<Ndim>(const double a, const svector<Ndim>& v);
+};
+
+
+template<const int Ndim> 
+inline svector<Ndim>::svector() 
+{
+  for(int i = 0; i < Ndim; i++) x[i] = 0.0;
+}
+
+template<const int Ndim> 
+inline svector<Ndim>::svector(const svector<Ndim>& v)
+{
+  for(int i = 0; i < Ndim; i++) x[i] = v.x[i];
+}
+
+template<const int Ndim> 
+inline svector<Ndim>::svector(double *a)
+{
+  for(int i = 0; i < Ndim; i++) x[i] = a[i];
+}
+
+template<const int Ndim> 
+inline svector<Ndim>::svector(double a)
+{
+  if(Ndim != 1) 
+    {
+      std::cerr << "svector<>(double) Wrong number of initial values\n";
+      throw("Wrong number of initial values\n");
+    }
+
+  x[0] = a;
+}
+
+template<const int Ndim> 
+inline svector<Ndim>::svector(double a0, double a1)
+{
+  if(Ndim != 2) 
+    {
+      std::cerr 
+	<< "svector<>(double, double) Wrong number of initial values\n";
+      throw("Wrong number of initial values\n");
+    }
+
+  x[0] = a0;
+  x[1] = a1;
+}
+
+template<const int Ndim> 
+inline svector<Ndim>::svector(double a0, double a1, double a2)
+{
+  if(Ndim != 3) 
+    {
+      std::cerr 
+	<< "svector<>(double, double,double) Wrong number of initial values\n";
+      throw("Wrong number of initial values\n");
+    }
+
+  x[0] = a0;
+  x[1] = a1;
+  x[2] = a2;
+}
+
+template<const int Ndim> 
+inline svector<Ndim>& svector<Ndim>::zero()   
+{
+  for(int i = 0; i < Ndim; i++) x[i] = 0.0;
+
+  return(*this);
+}
+
+template<const int Ndim> 
+inline double svector<Ndim>::dot(const svector<Ndim>& v) const
+{
+  double dd = 0.0;
+
+  for(int i = 0; i < Ndim; i++) dd += x[i] * v.x[i];
+
+  return(dd);
+}
+
+template<const int Ndim> 
+inline svector<Ndim> svector<Ndim>::operator+(const svector<Ndim>& v) const
+{
+  svector<Ndim> w;
+
+  for(int i = 0; i < Ndim; i++) w.x[i] = x[i] + v.x[i];
+
+  return(w);
+}
+
+template<const int Ndim> 
+inline svector<Ndim>& svector<Ndim>::operator+=(const svector<Ndim>& v)
+{
+  for(int i = 0; i < Ndim; i++) x[i] += v.x[i];
+
+  return(*this);
+}
+
+//xiaohan
+template<const int Ndim>
+inline svector<Ndim>& svector<Ndim>::operator*=(double scalar)
+{
+  for(int i = 0;i<Ndim;i++) x[i] *= scalar;
+  return (*this);
+}
+
+template<const int Ndim> 
+inline svector<Ndim>& svector<Ndim>::operator-=(const svector<Ndim>& v)
+{
+  for(int i = 0; i < Ndim; i++) x[i] -= v.x[i];
+
+  return(*this);
+}
+
+template<const int Ndim> 
+inline svector<Ndim> svector<Ndim>::operator-() const
+{
+  svector<Ndim> w;
+
+  for(int i = 0; i < Ndim; i++) w.x[i] = -x[i];
+
+  return(w);
+}
+
+template<const int Ndim> 
+inline svector<Ndim> svector<Ndim>::operator-(const svector<Ndim>& v) const
+{
+  svector<Ndim> w;
+
+  for(int i = 0; i < Ndim; i++) w.x[i] = x[i] - v.x[i];
+
+  return(w);
+}
+
+template<const int Ndim> 
+inline svector<Ndim> operator*(const double a, const svector<Ndim>& v)
+{
+  svector<Ndim> w;
+
+  for(int i = 0; i < Ndim; i++) w.x[i] = a * v.x[i];
+
+  return(w);
+}
+
+template<const int Ndim> 
+inline double svector<Ndim>::operator[](int i) const
+{
+  return(x[i]);
+}
+
+template<const int Ndim> 
+inline double& svector<Ndim>::operator[](int i)
+{
+  return(x[i]);
+}
+
+template<const int Ndim> 
+inline double svector<Ndim>::norm() const
+{
+  double dd = 0.0;
+
+  for(int i = 0; i < Ndim; i++) dd += x[i] * x[i];
+
+  return( sqrt(dd) );
+}
+
+template<const int Ndim> 
+std::ostream& operator<<(std::ostream& out, svector<Ndim> x)
+{
+  out << "[";
+
+  for(int i = 0; i < Ndim; i++)
+    {
+      out << x[i];
+      if(i < Ndim-1) out << ",";
+    }
+
+  out << "]";
+
+  return(out);
+}
+
+// svector<3> cross(svector<3> &a, svector<3> &b)   // 3d cross product
+// {
+//   return svector<3>(a[1]*b[2]-a[2]*b[1], 
+// 		    a[2]*b[0]-a[0]*b[2], 
+// 		    a[0]*b[1]-a[1]*b[0]);
+// }
+
+#endif                          // !defined(__SVECTOR_C__)
+
+

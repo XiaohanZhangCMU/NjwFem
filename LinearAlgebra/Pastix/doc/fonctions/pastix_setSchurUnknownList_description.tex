@@ -1,0 +1,17 @@
+\descript
+    {
+      Set the list of unknowns composing the schur complement.
+    }
+    {
+      Set the list of unknowns composing the schur complement.\\
+      This function must be used with \iparm{IPARM\_SCHUR} set to
+      \texttt{API\_YES}.\\
+      This function must be called before the graph partitioning step.\\
+      After using it and performing factorization, the \texttt{schur}
+      complement can be optained with \texttt{pastix\_getSchur}
+      (\ref{proto:pastix_getSchur}) or \texttt{pastix\_setSchurArray}
+      (\ref{proto:pastix_setSchurArray}) and the follwing solve 
+      will be performed on the non-schur part of the matrix (but using
+      a full lenght right-hand-side).
+      
+    }

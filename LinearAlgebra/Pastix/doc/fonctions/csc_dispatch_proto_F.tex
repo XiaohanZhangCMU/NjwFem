@@ -1,0 +1,56 @@
+
+\begin{type-func-vars}
+  \forkey{SUBROUTINE} \func{CSC\_DISPATCH\_FORTRAN} ( & \var{CSC\_DATA}, \var{GN}, \var{GCOLPTR},\\
+                                                      & \var{GROW}, \var{GAVALS},\\
+                                                      & \var{GRHS}, \var{GPERM},\\
+                                                      & \var{GINVP}, \var{DISPATCH},\\
+                                                      & \var{NEWN}, \var{NEWNNZ},\\
+                                                      & \var{PASTIX\_COMM})\\
+\end{type-func-vars}\\
+\begin{type-var}
+\hskip 0.8cm \type{pastix\_data\_ptr\_t}, INTENT(OUT)       & :: \var{CSC\_DATA}\\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN)              & :: \var{GN} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{GCOLPTR} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{GROW} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{GAVALS} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{GRHS} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{GPERM} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(0)& :: \var{GINVP} \\
+\hskip 0.8cm \type{INTEGER},       INTENT(IN)               & :: \var{DISPATCH}\\
+\hskip 0.8cm \type{INTEGER},       INTENT(OUT)              & :: \var{NEWN} \\
+\hskip 0.8cm \type{INTEGER},       INTENT(OUT)              & :: \var{NEWNNZ} \\
+\hskip 0.8cm \type{MPI\_COMM},     INTENT(IN)               & :: \var{PASTIX\_COMM}\\
+\end{type-var}\\
+\begin{type-func-vars}
+  \forkey{END SUBROUTINE} \func{CSC\_DISPATCH\_FORTRAN} &\\
+\index{Fonctions@Fonctions!\texttt{CSC\_DISPATCH\_FORTRAN}}
+\end{type-func-vars}
+
+
+%%void FORTRAN_CALL(csc_dispatch_fortran_end)(csc_data_t ** csc_data, 
+%%					    INT         *lcolptr, 
+%%					    INT         *lrow, 
+%%					    FLOAT       *lavals, 
+%%					    FLOAT       *lrhs, 
+%%					    FLOAT       *lperm
+%%					    INT         *l2g)
+
+\begin{type-func-vars}
+  \forkey{SUBROUTINE} \func{CSC\_DISPATCH\_FORTRAN\_END} ( & \var{CSC\_DATA}, \var{LCOLPTR}\\
+                                                           & \var{LROW}, \var{LAVALS},\\
+                                                           & \var{LRHS}, \var{LPERM},\\
+                                                           & \var{L2G})\\
+\end{type-func-vars}\\
+\begin{type-var}
+\hskip 0.8cm \type{pastix\_data\_ptr\_t}, INTENT(OUT)& :: \var{CSC\_DATA}\\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(n)& :: \var{LCOLPTR} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(nnz)& :: \var{LROW} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(nnz)& :: \var{LAVALS} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(n)& :: \var{LRHS} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(n)& :: \var{LPERM} \\
+\hskip 0.8cm \type{pastix\_int\_t}, INTENT(IN), DIMENSION(n)& :: \var{L2G} \\
+\end{type-var}\\
+\begin{type-func-vars}
+  \forkey{END SUBROUTINE} \func{CSC\_DISPATCH\_FORTRAN\_END} &\\
+\index{Fonctions@Fonctions!\texttt{CSC\_DISPATCH\_FORTRAN\_END}}
+\end{type-func-vars}

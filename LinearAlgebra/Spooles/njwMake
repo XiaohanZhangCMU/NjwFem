@@ -1,0 +1,8 @@
+make lib
+cd LinSol/srcST
+make Bridge.a
+cd ../../MT/src
+make spoolesMT.a
+cd ../../LinSol/srcMT
+make BridgeMT.a
+cd ../..

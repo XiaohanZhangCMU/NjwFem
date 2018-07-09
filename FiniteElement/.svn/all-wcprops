@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/Noelw/!svn/ver/1771/Code/FiniteElement
+END
+felement.C
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/Noelw/!svn/ver/1116/Code/FiniteElement/felement.C
+END
+awBasisFns.C
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/Noelw/!svn/ver/1119/Code/FiniteElement/awBasisFns.C
+END
+feMeshBst.C
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/Noelw/!svn/ver/1106/Code/FiniteElement/feMeshBst.C
+END
+dmStokesBasisFns.C
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/Noelw/!svn/ver/1487/Code/FiniteElement/dmStokesBasisFns.C
+END
+hdivBasisFns.C
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/Noelw/!svn/ver/1467/Code/FiniteElement/hdivBasisFns.C
+END
+utility.C
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/Noelw/!svn/ver/1472/Code/FiniteElement/utility.C
+END
+hermiteBasisFns.C
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/Noelw/!svn/ver/1357/Code/FiniteElement/hermiteBasisFns.C
+END
+feMesh.C
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/Noelw/!svn/ver/1454/Code/FiniteElement/feMesh.C
+END
+basisFns.C
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/Noelw/!svn/ver/1161/Code/FiniteElement/basisFns.C
+END
+bst.C
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/Noelw/!svn/ver/494/Code/FiniteElement/bst.C
+END
+lagrangeBasisFns.C
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/Noelw/!svn/ver/1771/Code/FiniteElement/lagrangeBasisFns.C
+END
+discontinuousFns.C
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/Noelw/!svn/ver/1322/Code/FiniteElement/discontinuousFns.C
+END

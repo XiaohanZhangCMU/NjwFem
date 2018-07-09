@@ -1,0 +1,18 @@
+\preproc{\#include} \inc{``pastix.h''}
+
+\begin{type-func-type-mod-var-type-mod-var}
+  \tftmv{void}{c\_pastix}{pastix\_data\_t }{\st{}\st{}}{pastix\_data},
+                  \tmv{MPI\_Comm       }{          }{pastix\_comm},\\
+                  \tmv{pastix\_int\_t  }{          }{n},
+                  \tmv{pastix\_int\_t  }{\st{}     }{colptr},\\
+                  \tmv{pastix\_int\_t  }{\st{}     }{row},
+                  \tmv{float complex   }{\st{}     }{avals},\\ 
+                  \tmv{pastix\_int\_t  }{\st{}     }{perm},
+                  \tmv{pastix\_int\_t  }{\st{}     }{invp},\\
+                  \tmv{float complex   }{\st{}     }{b},
+                  \tmv{pastix\_int\_t  }{          }{rhs},\\
+                  \tmv{pastix\_int\_t  }{\st{}     }{iparm},
+                  \tmv{double          }{\st{}     }{dparm} );\\
+  \label{proto:c_pastix}
+\index{Fonctions@Fonctions!\texttt{c\_pastix}}
+\end{type-func-type-mod-var-type-mod-var}

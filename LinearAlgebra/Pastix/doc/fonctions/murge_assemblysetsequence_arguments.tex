@@ -1,0 +1,17 @@
+\begin{arguments}
+  \argdesc{id}{Solver instance identification number.}
+  \argdesc{coefnbr}{Number of local entries in the sequence.}
+  \argdesc{ROWs}{List of rows of the sequence.}
+  \argdesc{COLs}{List of columns of the sequence.}
+  \argdesc{op}{Operation to perform for coefficient which appear several tim (see \texttt{MURGE\_ASSEMBLY\_OP}).}
+  \argdesc{op2}{Operation to perform when a coefficient is set by two different processors (see \texttt{MURGE\_ASSEMBLY\_OP}).}
+  \argdesc{mode}{Indicates if user ensure he will respect solvers distribution (see \texttt{MURGE\_ASSEMBLY\_MODE}).}
+  \argdesc{nodes}{ Indicate if entries are given one by one or by node~:
+    \begin{itemize}
+    \item[0~:] entries are entered value by value,
+    \item[1~:] entries are entries node by node.
+    \end{itemize}
+  }
+ \argdesc{id\_seq}{Sequence ID.}
+
+\end{arguments}

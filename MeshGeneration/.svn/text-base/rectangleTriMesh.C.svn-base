@@ -1,0 +1,487 @@
+// Set up a mesh with each trignale affine equivalent to the standard 
+
+#include<string>
+#include<sstream>
+#include<fstream>
+
+#include"../LinearAlgebra/svector.C"
+#include"gelement.C"
+#include"../FiniteElement/basisFns.C"
+
+typedef GeometricElement<2, 3> gelement;
+typedef BoundaryGelement<2, 2> bgelement;
+
+class rectangleTriMesh
+{
+public:
+  int band() const;    // max_elements (max_node_no(e) - min_node_no(e) + 1)
+  
+  rectangleTriMesh(int);
+  rectangleTriMesh(int, int);
+  rectangleTriMesh(int, int*);
+  rectangleTriMesh(int, int, int*);
+
+  rectangleTriMesh(std::string ss);
+  
+  int nNode()  const {return nodes;}
+  int nElem()  const {return nelem;}
+  int nBelem() const {return nbelem;}
+  
+  void info();
+  void print();
+  void print(std::ostream&);
+
+  class geiterator {
+  public:
+    geiterator();
+    geiterator(int l, rectangleTriMesh * g);
+    void operator++();
+    void operator++(int);
+    geiterator& operator=(const geiterator & it);
+    bool operator==(const geiterator & it);
+    bool operator!=(const geiterator & it);
+    gelement operator*();
+
+  private:
+    int loc;
+    rectangleTriMesh * gm;
+  };
+  
+  geiterator gebegin();
+  geiterator geend();
+  
+  class bgeiterator {
+    public:
+    bgeiterator();
+    bgeiterator(int l, rectangleTriMesh * g);
+    void operator++();
+    void operator++(int);
+    bgeiterator& operator=(const bgeiterator & it);
+    bool operator==(const bgeiterator & it);
+    bool operator!=(const bgeiterator & it);
+    bgelement operator*();
+
+  private:
+    int loc;
+    rectangleTriMesh * gm;
+  };
+  
+  bgeiterator bgebegin();
+  bgeiterator bgeend();
+
+  LagrangeBasisFunction<2> *gBasis;
+
+  gelement  intToGe(int) const;
+  bgelement intToBge(int) const;
+
+private:
+  int nelem;
+  int nodes;
+  int nbelem;
+  int nex, ney;
+  double xmin, xmax, ymin, ymax;
+  int bcType[4];
+};
+
+rectangleTriMesh::rectangleTriMesh(std::string ss) : gBasis(Triangle3)
+{
+  int nx;
+
+  if(!ss.empty())
+    {
+      std::istringstream ist(ss);
+     
+     if( !(ist >> nx) )
+       {
+	 std::cerr << "rectangleTriMesh(string): Invalid integer: " << ss
+		   << ", terminating" << std::endl;
+	 throw("Invalid input");
+       }
+     
+     if(nx <= 0) 
+       {
+	 std::cerr << "rectangleTriMesh(string): Invalid integer: " 
+		   << nx << ", terminating" << std::endl;
+	 throw("Invalid input argument");
+       }
+    }
+ else
+   {
+     nx = 8;
+   }
+
+  nelem = 2*nx*nx; 
+  nodes = ((nx+1)*(nx+1));
+  nbelem= (4*nx);
+
+  nex = (nx);
+  ney = (nx); 
+
+  xmin = (-1); xmax = (1); 
+  ymin = (-1); ymax = (1);
+
+  for(int i = 0; i < 4; i++) bcType[i] = 0;
+
+  bcType[1] = 1;   // Test Neumann BC
+
+
+//   xmin = (0); xmax = (1);   // Example 0 for book
+//   ymin = (0); ymax = (1);
+
+//   bcType[3] = 1;   // Test Neumann BC
+
+  info();
+}
+
+rectangleTriMesh::rectangleTriMesh(int nx) 
+  : gBasis(Triangle3),
+    nelem(2*nx*nx), nodes((nx+1)*(nx+1)),
+    nbelem(4*nx), nex(nx), ney(nx), 
+    xmin(-1), xmax(1), ymin(-1), ymax(1)
+{
+  for(int i = 0; i < 4; i++) bcType[i] = 0;
+
+  bcType[3] = 1;   // Test Neumann BC
+
+  info();
+}
+
+rectangleTriMesh::rectangleTriMesh(int nx, int bct[4]) 
+  : gBasis(Triangle3),
+    nelem(2*nx*nx), nodes((nx+1)*(nx+1)),
+    nbelem(4*nx), nex(nx), ney(nx), 
+    xmin(-1), xmax(1), ymin(-1), ymax(1)
+{
+  for(int i = 0; i < 4; i++) bcType[i] = bct[i];
+
+  info();
+}
+
+rectangleTriMesh::rectangleTriMesh(int nx, int ny) 
+  : gBasis(Triangle3),
+    nelem(2*nx*ny), nodes((nx+1)*(ny+1)),
+    nbelem(2*(nx+ny)), nex(nx), ney(ny),
+    xmin(-1), xmax(1), ymin(-1), ymax(1)
+{
+  for(int i = 0; i < 4; i++) bcType[i] = 0;
+
+  bcType[3] = 1;   // Test Neumann BC
+
+  info();
+}
+
+rectangleTriMesh::rectangleTriMesh(int nx, int ny, int bct[4]) 
+  : gBasis(Triangle3),
+    nelem(2*nx*ny), nodes((nx+1)*(ny+1)),
+    nbelem(2*(nx+ny)), nex(nx), ney(ny),
+    xmin(-1), xmax(1), ymin(-1), ymax(1)
+{
+  for(int i = 0; i < 4; i++) bcType[i] = bct[i];
+
+  info();
+}
+
+void rectangleTriMesh::info()
+{
+  std::cout << "rectangleTriMesh::info(): trangle mesh" << std::endl;
+  std::cout << "Boundary codes bcType[botom,rhs,top,lhs] = ["
+       << bcType[0] << "," << bcType[1] << ","
+       << bcType[2] << "," << bcType[3] << "]" 
+       << std::endl;
+  std::cout << "Number of elements in each x-direction = ......... " << nex 
+       << std::endl;
+  std::cout << "Number of elements in each y-direction = ......... " << ney 
+       << std::endl;
+  std::cout << "[xmin,xmax] = ............................... [" 
+       << xmin << "," << xmax << "]" << std::endl;
+  std::cout << "[ymin,ymax] = ............................... [" 
+       << ymin << "," << ymax << "]" << std::endl;
+
+  return;
+}
+
+int rectangleTriMesh::band() const
+{
+  return( (nex+1)+2 );
+}
+
+rectangleTriMesh::geiterator::geiterator() {
+    loc = 0;
+    gm = NULL;
+}
+
+rectangleTriMesh::geiterator::geiterator(int l, rectangleTriMesh * g) {
+    loc = l;
+    gm = g;
+}
+
+void rectangleTriMesh::geiterator::operator++() {
+    (*this)++;
+}
+
+void rectangleTriMesh::geiterator::operator++(int) {
+    loc++;
+}
+
+rectangleTriMesh::geiterator& rectangleTriMesh::geiterator::operator=(const geiterator & it) {
+    loc = it.loc;
+    gm = it.gm;
+    return *this;
+}
+
+bool rectangleTriMesh::geiterator::operator==(const geiterator & it) {
+    if (gm != it.gm || loc != it.loc) {
+	return false;
+    }
+    return true;
+}
+
+bool rectangleTriMesh::geiterator::operator!=(const geiterator & it) {
+    return !(*this == it);
+}
+
+gelement rectangleTriMesh::geiterator::operator*() {
+
+  gelement ee = gm->intToGe(loc);
+    
+  return ee;
+}
+
+
+rectangleTriMesh::geiterator rectangleTriMesh::gebegin() {
+    return geiterator(0, this);
+}
+
+rectangleTriMesh::geiterator rectangleTriMesh::geend() {
+    return geiterator(nelem, this);
+}
+
+rectangleTriMesh::bgeiterator::bgeiterator() {
+    loc = 0;
+    gm = NULL;
+}
+
+rectangleTriMesh::bgeiterator::bgeiterator(int l, rectangleTriMesh * g) {
+    loc = l;
+    gm = g;
+}
+
+void rectangleTriMesh::bgeiterator::operator++() {
+    (*this)++;
+}
+
+void rectangleTriMesh::bgeiterator::operator++(int) {
+    loc++;
+}
+
+rectangleTriMesh::bgeiterator& rectangleTriMesh::bgeiterator::operator=(const bgeiterator & it) {
+    loc = it.loc;
+    gm = it.gm;
+    return *this;
+}
+
+bool rectangleTriMesh::bgeiterator::operator==(const bgeiterator & it) {
+    if (loc != it.loc || gm != it.gm) {
+	return false;
+    }
+    return true;
+}
+
+bool rectangleTriMesh::bgeiterator::operator!=(const bgeiterator & it) {
+    return !(*this == it);
+}
+
+bgelement rectangleTriMesh::bgeiterator::operator*() {
+
+  bgelement be = gm->intToBge(loc);
+
+  return be;
+
+}
+
+rectangleTriMesh::bgeiterator rectangleTriMesh::bgebegin() {
+    return bgeiterator(0,this);
+}
+
+rectangleTriMesh::bgeiterator rectangleTriMesh::bgeend() {
+    return bgeiterator(nbelem,this);
+}
+
+gelement rectangleTriMesh::intToGe(int eleIndex) const
+{
+  gelement ee;
+  double hx, hy, x0, y0;
+  int ie, je, n;
+  
+  //*********** Set up for Tri 3 Elements **************
+  //*********** Set up for Tri 3 Elements **************
+  //*********** Set up for Tri 3 Elements **************
+	
+  n = eleIndex / 2;
+  je = n / nex;
+  ie = n - je * nex;
+
+ if((n < 0) || (n >= nelem))
+   {
+     std::cerr << "Element number " << n << " out of range, nelem = " 
+	       << nelem << std::endl;
+
+     throw("Element number out of range");
+   }
+
+ hx = (xmax-xmin) / nex;
+ hy = (ymax-ymin) / ney;
+ 
+ x0 = xmin + ie * hx;
+ y0 = ymin + je * hy;
+  
+  if((eleIndex)%2 == 0)
+    {
+    ee.nodes[0] = (nex+1) * je + ie;
+    ee.nodes[1] = ee.nodes[0] + 1;
+    ee.nodes[2] = ee.nodes[0] + (nex+1);
+
+    ee.xx[0] = svector<2>(x0,    y0);
+    ee.xx[1] = svector<2>(x0+hx, y0);
+    ee.xx[2] = svector<2>(x0,    y0+hy);
+    }
+  else
+    {
+    ee.nodes[0] = (nex+1) * je + ie + 1;
+    ee.nodes[1] = ee.nodes[0] + (nex+1);
+    ee.nodes[2] = ee.nodes[1] - 1;
+
+    ee.xx[0] = svector<2>(x0+hx, y0);
+    ee.xx[1] = svector<2>(x0+hx, y0+hy);
+    ee.xx[2] = svector<2>(x0,    y0+hy);
+    }
+
+  ee.master = gBasis->master;
+  ee.basis  = gBasis->basis;
+
+  return(ee);
+}
+
+bgelement rectangleTriMesh::intToBge(int n) const
+{
+double hx,hy;
+bgelement ee;
+
+//*********** Set up for Tri 3 Elements **************
+//*********** Set up for Tri 3 Elements **************
+//*********** Set up for Tri 3 Elements **************
+
+ if((n < 0) || (n >= nbelem))
+   {
+     std::cerr << "Boundary element number " << n << " out of range, nelem = " 
+	       << nelem << std::endl;
+
+     throw("Boundary element number out of range");
+   }
+
+ hx = (xmax-xmin) / nex;
+ hy = (ymax-ymin) / ney;
+
+// Except for the zeroth element,
+//
+// Bottom boundary: type = bcType[0] 
+// Right hand side: type = bcType[1]
+// Top boundary:    type = bcType[2]
+// Left hand side:  type = bcType[3]
+//
+// The zeroth element has it's type incremented by 10, the
+// pressure will be specified at the zeroth node of this element.
+
+
+ if(n < nex)  // bottom
+  {
+    ee.type = bcType[0];
+
+    ee.nodes[0] = n;
+    ee.nodes[1] = ee.nodes[0] + 1;
+
+    ee.xx[0] = svector<2>(xmin + n * hx, ymin);
+    ee.xx[1] = ee.xx[0] + svector<2>(hx  , 0.0);
+  }
+ else if(n < nex+ney) // rhs
+   {
+    ee.type = bcType[1];
+
+    ee.nodes[0] = (n-nex+1) * (nex+1) - 1;
+    ee.nodes[1] = ee.nodes[0] + (nex+1);
+
+    ee.xx[0] = svector<2>(xmax, xmin + (n-nex)*hy);
+    ee.xx[1] = ee.xx[0] + svector<2>(0.0, hy);
+  }
+ else if(n < 2*nex+ney)  // top
+  {
+    ee.type = bcType[2];
+
+    ee.nodes[1] = (nex+1)*ney + (n-nex-ney);
+    ee.nodes[0] = ee.nodes[1] + 1;
+
+    ee.xx[1] = svector<2>(xmin + (n-nex-ney) * hx, ymax);
+    ee.xx[0] = ee.xx[1] + svector<2>(hx  , 0.0);
+  }
+ else if(n < 2*nex + 2*ney) // lhs
+   {
+    ee.type = bcType[3];
+
+    ee.nodes[1] = (n-2*nex-ney) * (nex+1);
+    ee.nodes[0] = ee.nodes[1] + (nex+1);
+
+    ee.xx[1] = svector<2>(xmin, ymin + (n-2*nex-ney)*hy);
+    ee.xx[0] = ee.xx[1] + svector<2>(0.0, hy);
+  }
+ else
+   {
+     std::cerr 
+       << "Boundary element number " << n << " out of range, nbelem = " 
+       << nbelem << std::endl;
+
+     throw("Boundary element number out of range");
+   }
+
+ ee.master = gBasis->boundary->master;
+ ee.basis  = gBasis->boundary->basis;
+
+ return(ee);
+}
+
+void rectangleTriMesh::print()
+{
+  int i;
+
+  gelement ge;
+  bgelement be;
+
+  std::ofstream dump("output");
+
+  dump.setf(std::ios::fixed, std::ios::floatfield);
+
+  dump << "Number of elements = " << nelem << std::endl;
+  dump << "Number of nodes    = " << nodes << std::endl;
+  dump << "Band width         = " << band() << std::endl;
+
+  for(i = 0; i < nelem; i++)
+    {
+      dump << "Element " << i << std::endl;
+
+      ge = intToGe(i);
+
+      // ge.print(dump);
+    }
+
+  dump << std::endl << "Number of boundary elements = " << nbelem << std::endl;
+
+  for(i = 0; i < nbelem; i++)
+    {
+      dump << "Boundary Element " << i << ",";
+
+      be = intToBge(i);
+
+      // be.print(dump);
+    }
+
+  dump.close();
+}

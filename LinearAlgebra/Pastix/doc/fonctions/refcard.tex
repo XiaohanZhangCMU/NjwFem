@@ -1,0 +1,463 @@
+%\documentclass[landscape,letterpaper]{article}
+\documentclass{article}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{parskip}
+\usepackage[landscape]{geometry}
+\usepackage[usenames,dvipsnames]{color} 
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{graphics}
+\usepackage{verbatim} 
+%\usepackage{a4}%-Northamerica: {fullpage}
+\usepackage{svn}%!/hg/s/linux/9/app/teTeX/11.05/texmf-dist/tex/latex/svn/svn.sty
+%           --- ubuntu lacks this but has latex-svinfo - usepackage{svninfo}
+\addtolength{\textheight}{52mm}
+\addtolength{\topmargin}{-21mm}
+\addtolength{\oddsidemargin}{-37mm}
+\addtolength{\evensidemargin}{-37mm}
+\addtolength{\textwidth}{74mm}
+%\setlength{\columnsep}{5pt}		% default=10pt
+\setlength{\columnseprule}{0pt}		% default=0pt (no line)
+
+\newcommand\pastix{\textsc{PaStiX}}
+
+%%\newcommand{\type}[1]{\textcolor{OliveGreen}{#1}}
+%%\newcommand{\var}[1]{\textcolor{YellowOrange}{#1}}
+%%\newcommand{\func}[1]{\textcolor{Blue}{#1}}
+%%\newcommand{\st}{\raisebox{-0.5ex}{*}}
+
+\newcommand{\type}[1]{\textbf{#1}}
+\newcommand{\var}[1]{\texttt{#1}}
+\newcommand{\func}[1]{\texttt{#1}}
+\newcommand{\forkey}[1]{\texttt{#1}}
+\newcommand{\st}{\raisebox{-0.5ex}{*}}
+
+
+\newenvironment{tabI}{\begin{tabular}{p{30mm}p{96mm}}}{\end{tabular}}
+\newenvironment{tabIbis}[1]{\begin{tabular}{|p{33mm}|p{3mm}|p{73mm}|}\hline\multicolumn{3}{|l|}{#1}\\\hline}{\end{tabular}}
+\newenvironment{tabIter}{\begin{tabular}{|p{45mm}|p{15mm}|p{155mm}|p{40mm}|p{15mm}|}}{\end{tabular}}
+\newenvironment{tabII}{\begin{tabular}{|p{86mm}|p{8mm}|p{10mm}|p{12mm}|}}{\end{tabular}}
+\newenvironment{tabIII}{\begin{tabular}{|p{32mm}|p{90mm}|}}{\end{tabular}}
+\newenvironment{tabIIIbis}{\begin{tabular}{|p{35mm}|p{85mm}|}}{\end{tabular}}
+\newenvironment{tabIV}{\begin{tabular}{|p{60mm}|p{60mm}|}}{\end{tabular}}
+\newenvironment{tabTit}[1]{\underline{\textbf{#1}}\\ \begin{tabI}}{\end{tabI}}
+\newenvironment{mylisting}
+{\begin{list}{}{\setlength{\leftmargin}{1em}}\item\scriptsize\bfseries}
+{\end{list}}
+
+\newenvironment{mytinylisting}
+{\begin{list}{}{\setlength{\leftmargin}{1em}}\item\tiny\bfseries\begin{verbatim}}
+{\end{list}\end{verbatim}}
+
+
+\lstnewenvironment{functionc}{
+\lstset{language=C}
+\lstset{emph={pastix_data_t,pastix_float_t,pastix_int_t,MPI_Comm,PASTIX_PTR,PASTIX_INT,PASTIX_FLOAT,CSCD_OPERATIONS_t},emphstyle=\bfseries}
+}{}
+
+\newenvironment{arguments}{\begin{tabI}}{\end{tabI}}
+\newenvironment{arguments2}{\begin{tabular}{p{10mm}p{30mm}p{86mm}}}{\end{tabular}}
+\newenvironment{returns}{Returns~:\\\begin{tabI}}{\end{tabI}}
+
+\newcommand{\descript}[2]{\par#1}
+
+\newcommand*{\tabIIItitle}[1]{\multicolumn{2}{|l|}{#1}}
+%
+\newcommand{\Sect}[1]{\par\noindent\medskip\normalsize\textbf{#1}
+  \vskip -.2ex plus 1ex minus 1ex \small}
+\newcommand{\Sectbis}[2]{\par\noindent\medskip\large\textbf{#1}\small\ #2
+  \vskip -.2ex plus 1ex minus 1ex \small}
+
+\newcommand{\Sectii}[1]{\par\noindent\medskip\normalsize\textbf{#1}
+  \vskip -.2ex plus 1ex minus 1ex \small}
+
+\newcommand{\Sectiii}[1]{\par\noindent\medskip\small\textbf{#1}
+  \hrule\small}
+
+\newcommand*{\Ecmd}[1]{$\left\langle \textrm{#1} \right\rangle$}
+\newcommand*{\sEcmd}[1]{{\small\Ecmd{#1}}}
+\newcommand*{\RET}[0]{\Ecmd{\textsc{ret}}}
+\newcommand*{\TAB}[0]{\Ecmd{\textsc{tab}}}
+
+\raggedcolumns%\raggedbottom
+\setlength{\columnseprule}{.4pt}% default 0
+\setlength{\columnsep}{22pt}% default is less (18 pt?)
+\pagestyle{empty}
+
+
+\begin{document}
+
+%\svnid{$Id$}
+
+\SVN $Date$
+%% \svnidlong
+%% {$HeadURL$}
+%% {$LastChangedDate$}
+%% {$LastChangedRevision$}
+%% {$LastChangedBy$}
+
+%\begin{multicols}{1}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% CLASSICAL PASTIX   %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+  {\LARGE \pastix{} version 5.1 Quick Reference Guide}
+  %  {\small \pastix{} Version 5.1}% {\footnotesize --- needs \em{more} updating!}}
+  \\[1ex] {\tiny \SVNDate}%\SVNRev}
+  %           \footnotesize \today
+\end{center}
+
+%\begin{enumerate}
+%\item  \textsc{Nota Bene:} S is the \emph{language},
+%  R is one \emph{dialect}!
+%\item This is a list of the more widely used \textbf{key - shortcuts}.
+%  Many more are available, and most are accessible from the Emacs
+%  \textbf{Menus} such as \texttt{iESS}, \texttt{ESS}, etc.
+%NN  \vspace*{-3ex}
+%\end{enumerate}
+%\end{multicols}
+%NN \rule{\textwidth}{.2pt}%----------------------------------------------------
+\begin{multicols}{2}
+  \Sect{\pastix{} Calls with global matrix }
+  
+  \hrule
+  \lstset{language=C}
+  \lstset{emph={pastix_data_t,pastix_float_t,pastix_int_t,MPI_Comm,PASTIX_PTR,PASTIX_INT,PASTIX_FLOAT},emphstyle=\bfseries}
+%%  \begin{lstlisting}
+%%#include "pastix.h"
+%%
+%%void pastix(pastix_data_t **pastix_data, MPI_Comm pastix_comm, 
+%%            pastix_int_t    n,           pastix_int_t   *colptr, 
+%%            pastix_int_t   *row,         pastix_float_t *avals, 
+%%            pastix_int_t   *perm,        pastix_int_t   *invp,  
+%%            pastix_float_t *b,           pastix_int_t    rhs,
+%%            pastix_int_t   *iparm,       double         *dparm);
+%%  \end{lstlisting}
+%%  \textcolor{Rhodamine}{\#include} \textcolor{Peach}{``pastix.h''}\\
+\texttt{\#include ``pastix.h''}
+
+\input{../fonctions/pastix_proto_C}
+\begin{tabular}{l@{ }l@{ }l@{ }l@{ }l@{ }l@{ }l@{ }l@{ }l@{ }}
+  \type{void} & \func{pastix} ( & \type{pastix\_data\_t}  & \st{}\st{} & \var{pastix\_data},&
+                                  \type{MPI\_Comm}        &            & \var{pastix\_comm},\\
+              &                 & \type{pastix\_int\_t}   &            & \var{n},&
+                                  \type{pastix\_int\_t}   & \st{}      & \var{colptr},\\
+              &                 & \type{pastix\_int\_t}   & \st{}      & \var{row},&
+                                  \type{pastix\_float\_t} & \st{}      & \var{avals},\\ 
+              &                 & \type{pastix\_int\_t}   & \st{}      & \var{perm},&
+                                  \type{pastix\_int\_t}   & \st{}      & \var{invp},\\
+              &                 & \type{pastix\_float\_t} & \st{}      & \var{b},&
+                                  \type{pastix\_int\_t}   &            & \var{rhs},\\
+              &                 & \type{pastix\_int\_t}   & \st{}      & \var{iparm},&
+                                  \type{double}           & \st{}      & \var{dparm} );\\
+  \label{proto:pastix}
+\end{tabular}
+
+  \vskip 0.3 cm
+  \hrule
+
+\texttt{\#include ``pastix\_fortran.h''}
+
+\begin{tabular}{ll}
+  \type{pastix\_data\_ptr\_t} &  \var{pastix\_data}\\
+  \type{integer}              &  \var{pastix\_comm}\\
+  \type{pastix\_int\_t}       &  \var{n}, \var{rhs}, \var{ia(n)}, \var{ja(nnz)}\\
+  \type{pastix\_float\_t}     &  \var{avals(nnz)}, \var{b(n)}\\
+  \type{pastix\_int\_t}       &  \var{perm(n)}, \var{invp(n)}, \var{iparm(64)}\\
+  \type{real}\st{}8           &  \var{dparm(64)}\\
+\end{tabular}
+
+\begin{tabular}{l@{ }l}
+  \forkey{call} \func{pastix\_fortran} ( & \var{pastix\_data},
+  \var{pastix\_comm}, \var{n}, \var{ia}, \var{ja}, \var{avals},\\
+                       & \var{perm}, \var{invp}, \var{b}, \var{rhs},
+  \var{iparm}, \var{dparm} )\\
+\end{tabular}
+%% 
+%%   \lstset{emph={pastix_data_ptr_t,pastix_int_t,pastix_float_t},emphstyle=\bfseries}
+%%   \lstset{language=Fortran}
+%%   \begin{lstlisting}
+%% #include "pastix_fortran.h"
+%%   pastix_data_ptr_t  pastix_data
+%%   integer            pastix_comm
+%%   pastix_int_t       n, rhs, ia(n), ja(nnz)
+%%   pastix_float_t     avals(nnz), b(n)
+%%   pastix_int_t       perm(n), invp(n), iparm(64)
+%%   real*8             dparm(64)    
+%%     ...
+%% call pastix_fortran(pastix_data, pastix_comm, n, ia, ja, avals,
+%%                     perm, invp, b, rhs, iparm, dparm)
+%%   \end{lstlisting}
+%% 
+  \hrule
+  %\begin{multicols}{2}
+  \begin{tabI}
+    \texttt{pastix\_data} & Data structure used to keep informations for a
+    step by step call. Should be given unallocated for first call.\\
+    %Next calls should use the same structure.\\
+    \texttt{pastix\_comm} & MPI communicator used to solve the system.\\
+    \texttt{n}            & Matrix dimension.\\
+    \texttt{nnz}          & Number of non-zeros.\\
+    \texttt{colptr}, \texttt{row},       \texttt{avals} 
+    & Matrix in CSC format (see example below).\\
+    
+    \texttt{perm}         & Permutation vector. \\
+    \texttt{invp}         & Inverse permutation vector.\\
+    \texttt{b}            & Right-hand side(s) and solution(s) as output.\\
+    \texttt{rhs}          & Number of right-hand side(s).\\
+    \texttt{iparm}        & Integer parameter vector.\\
+    \texttt{dparm}        & Double parameter vector.\\
+  \end{tabI}\\
+  
+  \hrule
+  In the current release, the matrix must be given in a Compress Sparse Column format in fortran numbering (starts from 1).
+  
+  \begin{multicols}{2}
+    CSC matrix example :
+    $  
+    \begin{pmatrix} 
+      1 & 0 & 0 & 0 & 0\\
+      0 & 3 & 0 & 0 & 0\\ 
+      2 & 0 & 5 & 0 & 0\\  
+      0 & 4 & 6 & 7 & 0\\
+      0 & 0 & 0 & 0 & 8\\
+    \end{pmatrix}
+    $\\
+    \begin{tabular}{lcl}
+      colptr & = & $\{1,3,5,7,8,9\}$\\
+      row    & = & $\{1,3,2,4,3,4,4,5\}$\\
+      avals  & = & $\{1,2,3,4,5,6,7,8\}$\\
+    \end{tabular}
+  \end{multicols}
+
+  \vskip 3 cm
+
+%%  \begin{center}
+%%    {\LARGE \pastix{} with distributed matrix}
+%%  \end{center}
+
+  %\Sect{Work in progress...}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% DISTRIBUTED MATRIX %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  \Sect{\pastix{} Calls with distributed matrix}
+
+  \hrule
+  \lstset{language=C}
+  \lstset{emph={pastix_data_t,pastix_float_t,pastix_int_t,MPI_Comm},emphstyle=\bfseries}
+
+  \begin{lstlisting}
+#include "pastix.h"
+
+void dpastix(pastix_data_t **pastix_data, MPI_Comm       pastix_comm, 
+             pastix_int_t    n,           pastix_int_t   *colptr, 
+             pastix_int_t   *row,         pastix_float_t *avals, 
+             pastix_int_t   *loc2glb,    
+             pastix_int_t   *perm,        pastix_int_t   *invp,        
+             pastix_float_t *b,           pastix_int_t    rhs,         
+             pastix_int_t   *iparm,       double         *dparm);
+  \end{lstlisting}
+
+  \hrule
+  \lstset{emph={pastix_dtat_ptr_t,pastix_int_t,pastix_float_t},emphstyle=\bfseries}
+  \lstset{language=Fortran}
+  \begin{lstlisting}
+#include "pastix_fortran.h"
+  pastix_data_ptr_t  pastix_data
+  integer            mpi_comm
+  pastix_int_t       n, rhs, ia(n), ja(nnz)
+  pastix_float_t     avals(nnz), b(n)
+  pastix_int_t       loc2glb(n), perm(n), invp(n), iparm(64)
+  real*8             dparm(64)    
+    ...
+call dpastix_fortran(pastix_data, mpi_comm, n, ia, ja, avals,
+                     loc2glb, perm, invp, b, rhs, iparm, dparm) 
+  \end{lstlisting}
+  \hrule
+  
+  Additional parameter :
+
+  \begin{tabI}
+    \texttt{loc2glb} & Local to global column number correspondance,\\
+                     & all columns must be distributed once and loc2glob must be ordered increasingly.\\
+  \end{tabI}\\
+  \hrule
+  %% The only parameters changing from classical \pastix{} call are
+  %% the ones corresponding to the CSC matrix.\\
+  %% The CSC matrix is now distributed.\\
+
+  %% \begin{tabI}
+  %%   \texttt{colptr}  & Tabular indicating start of each column in row and avals tabulars.\\
+  %%   \texttt{row}     & Line indexes for each local column.\\
+  %%   \texttt{avals}   & Values of the local part of the matrix.\\
+  %%   \texttt{loc2glb} & global number of each local columns.
+  %% \end{tabI}
+  The distribution of the CSC matrix is given through the loc2glb vector (see example below).
+
+  \begin{multicols}{2}
+    dCSC matrix example :\\
+
+    $  
+    \begin{pmatrix} 
+      P_1 & P_2 & P_1 & P_2 & P_1\\
+      1   & 0   & 0   & 0   & 0\\
+      0   & 3   & 0   & 0   &  0\\ 
+      2   & 0   & 5   & 0   & 0\\  
+      0   & 4   & 6   & 7   & 0\\
+      0   & 0   & 0   & 0   & 8\\
+    \end{pmatrix}
+    $\\
+    \vskip 2 cm
+    On processor one : \\
+    \begin{tabular}{lcl}
+      colptr  & = & $\{1,3,5,6\}$\\
+      row     & = & $\{1,3,3,4,5\}$\\
+      avals   & = & $\{1,2,5,6,8\}$\\
+      loc2glb & = & $\{1,3,5\}$\\
+    \end{tabular}
+
+    On processor two : \\
+    \begin{tabular}{lcl}
+      colptr   & = & $\{1,3,4\}$\\
+      row      & = & $\{2,4,4\}$\\
+      avals    & = & $\{3,4,7\}$\\
+      loc2glb  & = & $\{2,4\}$\\
+    \end{tabular}
+  \end{multicols}
+\end{multicols}
+\newpage
+
+\Sect{Floating and Integer parameters (dparm and iparm)}
+%%    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\input{dparm.tex}
+%%    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\input{iparm.tex}
+\newpage
+
+\Sect{\pastix{} API : Macros}
+%%    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\begin{multicols}{2}
+
+\input{api.tex}
+\end{multicols}
+\newpage
+\Sect{\pastix{} API : Functions}
+\begin{multicols}{2}
+\input{apifunctions.tex}
+\end{multicols}
+\newpage
+\Sect{\pastix{} API : Murge Interface}
+\input{murge.tex}
+
+\newpage
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%% COMPILATION        %%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{multicols}{2}
+
+  \begin{center}
+    {\LARGE How-to compile \pastix{}}
+  \end{center}
+  \Sect{Requirements}
+  The \pastix{} team recommands you to get Scotch
+  (\url{http://gforge.inria.fr/projects/scotch/}) and compile it.\\ 
+  Then go into \pastix{} directory. Select the config file corresponding
+  to your machine in \texttt{\$\{PASTIX\_DIR\}/config/} and copy it to
+  \texttt{\$\{PASTIX\_DIR\}/config.in}.\\ 
+  Now edit this file, select the options you want, and set the correct
+  path for \texttt{\$\{SCOTCH\_HOME\}}.\\ 
+  If you want to use METIS, you also have to compile it and edit the
+  path in \texttt{config.in}.
+
+  \Sect{Compilation}
+
+  \begin{tabIII}
+    \hline
+    \tabIIItitle{Makefile tags (from the root directory)}\\
+    \hline
+    \texttt{make clean}     & clean to rebuild the library\\
+    \texttt{make expor}     & compile the \pastix{} library\\
+    \texttt{make debug}     & compile the \pastix{} library in debug mode\\
+    \texttt{make install}   & install the \pastix{} library 
+    (\texttt{'make expor'} or \texttt{'debug'} required)\\
+    \texttt{make drivers}      & compile the matrix drivers
+    (\texttt{'make install'} required)\\
+    \texttt{make examples}  & compile the PaStiX examples
+    (\texttt{'make install'} required)\\
+    \hline 
+    \hline 
+    \texttt{make murge\_examples} & compile MURGE examples
+    (only available in distributed mode -DDISTRIBUTED, \texttt{'make install'} required)\\
+    \hline
+  \end{tabIII}
+
+  \Sect{Compilation options (\texttt{config.in})}
+
+  \begin{tabIII}
+    \hline
+    \tabIIItitle{General options} \\
+    \hline
+    \texttt{-DDISTRIBUTED}         & Enable distributed mode \texttt{dpastix} (PT-Scotch required)\\
+    \texttt{-DFORCE\_LONG}         & Use long integers\\
+    \texttt{-DFORCE\_DOUBLE}       & Use double floating coefficients\\
+    \texttt{-DFORCE\_COMPLEX}      & Use complex coefficients\\
+    \texttt{-DFORCE\_NOMPI}        & Compilation without MPI support\\
+    \texttt{-DFORCE\_NOSMP}        & Compilation without Thread support\\
+    %  \texttt{-DONLY\_LOAD\_SYMBMTX} & Will only load the symbol matrix and make a fake factorization\\
+    \hline
+  \end{tabIII}
+
+  \begin{tabIII}
+    \hline
+    \tabIIItitle{Preprocessing options} \\
+    \hline
+    \texttt{-DMETIS}           & Use Metis ordering library (needs \texttt{-L\$\{METIS\_HOME\} -lmetis)}\\
+    \texttt{-DWITHOUT\_SCOTCH} & Deactivate Scotch ordering library\\
+    \hline
+  \end{tabIII}
+
+  \begin{tabIII}
+    \hline
+    \tabIIItitle{Solver options - \textit{See \texttt{\$PASTIX\_HOME/sopalin/src/sopalin\_define.h}}}\\
+    \hline
+    \texttt{-DNUMA\_ALLOC}      & Allocation of the coefficient vector locally on each thread.\\
+    \texttt{-DNO\_MPI\_TYPE}    & Avoids MPI types usage by copying into communication buffers.\\
+    \texttt{-DTEST\_IRECV}      & Non blocking receptions\\
+    \texttt{-DTHREAD\_COMM}     & Reception on dedicated threads (persistent communications).\\
+    \texttt{-DPASTIX\_FUNNELED} & Main thread makes all communications.\\
+    %  \texttt{-DNOSMP\_RAFF}     & Uses threads in refinement functions.\\
+    \hline 
+  \end{tabIII}
+
+  \begin{tabIII}
+    \hline
+    \tabIIItitle{Statistics and Debug options - \textit{See \texttt{\$PASTIX\_HOME/sopalin/src/sopalin\_define.h}}}\\
+    \hline
+    \texttt{-DMEMORY\_USAGE}   & Shows memory allocations (could slow down execution)\\
+    \texttt{-DSTATS\_SOPALIN}  & Shows parallelization memory overhead\\
+    \texttt{-DVERIF\_MPI}      & Checks MPI Communication successful\\
+    \texttt{-DFLAG\_ASSERT}    & Adds some checks during factorization\\
+%    \texttt{-DTRACE\_SOPALIN}  & Generate a trace file for PAJE\\
+    \hline
+  \end{tabIII}
+\vskip 6 cm
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% Details            %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  \input{details.tex}
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%% ADVANCED           %%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \newpage
+  \input{advanced.tex}
+\end{multicols}
+\end{document}

@@ -1,0 +1,16 @@
+\descript{
+  Adds CSCD matrix adda to a, producing newa (allocated in the function).\\ 
+  The operation \texttt{OP} can be : \texttt{CSCD\_ADD},
+  \texttt{CSCD\_KEEP}, \texttt{CSCD\_MAX}, \texttt{CSCD\_MIN}, and
+  \texttt{CSCD\_OVW} (overwrite).
+}{
+  Add the second CSCD to the first CSCD, result is stored in the third
+  CSCD (allocated in the function).\\ 
+  The operation \texttt{OP} can be :
+  \begin{description}
+  \item[\texttt{CSCD\_ADD }~:]  to add common coefficients.
+  \item[\texttt{CSCD\_KEEP}~:]  to keep the coefficient of the first matrix.
+  \item[\texttt{CSCD\_MAX }~:]  to keep the maximum value.
+  \item[\texttt{CSCD\_MIN }~:]  to keep the minimum value.
+  \item[\texttt{CSCD\_OVW }~:]  to overwrite with the value from the added CSCd.
+  \end{description}}

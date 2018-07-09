@@ -1,0 +1,15 @@
+\descript{
+Affect memory area for the \texttt{schur}
+}{
+Using this fonction, the user provides a memory area for the storage
+of the schur.\\
+The memory area must be of size $nSchurLocalcol \times nSchurCol$,
+where \texttt{nSchurLocalcol} is the number of local columns required
+for the \texttt{MPI} node and \texttt{nSchurCol} is the global number
+of columns of the \texttt{schur} (and row since the schur is a
+square).\\
+This function as to be called after analysis step and before numerical
+factorization is performed.\\
+After the factorization, the \texttt{schur} column $schurLocalColumn[i]$ will be stored
+from $schurArray[i\times nSchurCol]$
+to $schurArray[(i+1)\times nSchurCol - 1]$.}

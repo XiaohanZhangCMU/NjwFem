@@ -1,0 +1,15 @@
+\begin{arguments}
+  \argdesc{pastix\_data}{Area used to store information between calls.
+    Should be given as NULL for first call.}
+  %Next calls should use the same structure.}
+  \argdesc{pastix\_comm}{MPI communicator used to solve the system.}
+  \argdesc{n           }{Matrix dimension.}
+  \argdesc{nnz         }{Number of non-zeros.}
+  \argdesc{colptr, row, avals}{Matrix in CSC format (see example below).}  
+  \argdesc{perm        }{Permutation vector. }
+  \argdesc{invp        }{Inverse permutation vector.}
+  \argdesc{b           }{Right-hand side(s) and solution(s) as output.}
+  \argdesc{rhs         }{Number of right-hand side(s).}
+  \argdesc{iparm       }{Vector of integer parameters.}
+  \argdesc{dparm       }{Vector of real parameters.}
+\end{arguments}

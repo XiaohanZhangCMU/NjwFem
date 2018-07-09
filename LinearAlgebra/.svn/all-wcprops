@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/Noelw/!svn/ver/1788/Code/LinearAlgebra
+END
+lapackMatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/Noelw/!svn/ver/1427/Code/LinearAlgebra/lapackMatrix.C
+END
+petscMatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/Noelw/!svn/ver/1196/Code/LinearAlgebra/petscMatrix.C
+END
+superluMatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/Noelw/!svn/ver/1788/Code/LinearAlgebra/superluMatrix.C
+END
+svector.C
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/Noelw/!svn/ver/1246/Code/LinearAlgebra/svector.C
+END
+pardisoMatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/Noelw/!svn/ver/1331/Code/LinearAlgebra/pardisoMatrix.C
+END
+njwSpooles.2.2.tar.gz
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/Noelw/!svn/ver/1286/Code/LinearAlgebra/njwSpooles.2.2.tar.gz
+END
+smatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/Noelw/!svn/ver/1396/Code/LinearAlgebra/smatrix.C
+END
+bandMatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/Noelw/!svn/ver/1201/Code/LinearAlgebra/bandMatrix.C
+END
+sbmatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/Noelw/!svn/ver/1119/Code/LinearAlgebra/sbmatrix.C
+END
+spoolesMatrix.C
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/Noelw/!svn/ver/1294/Code/LinearAlgebra/spoolesMatrix.C
+END

@@ -1,0 +1,4 @@
+# Clean-up rules.
+
+clean			:
+				-$(RM) *~ $(OJTDIR)/* $(DSTDIR)/*

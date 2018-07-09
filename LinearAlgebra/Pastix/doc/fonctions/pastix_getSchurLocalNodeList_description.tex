@@ -1,0 +1,12 @@
+\descript{
+Return the list of local schur nodes. 
+}{
+Return the list of nodes of the schur complement which will be stored
+on the current \texttt{MPI} process.\\
+This knowledge is necessary for the user to interpret the part of the
+schur stored in the memory allocation he provides
+with \texttt{pastix\_setSchurArray} (\ref{proto:pastix_setSchurArray}).\\
+This function can't be called before analysis step and user must have
+called \texttt{pastix\_getSchurLocalNodeNbr}
+(\ref{proto:pastix_getSchurLocalNodeNbr}) to be aware of the size of the
+node list.}

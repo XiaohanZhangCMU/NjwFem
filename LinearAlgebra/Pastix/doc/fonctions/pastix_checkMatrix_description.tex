@@ -1,0 +1,22 @@
+\descript{
+  %% description courte
+  Check and correct the user matrix in CSC format.}{
+  %% description longue
+  Check and correct the user matrix in CSC format~:
+  \begin{itemize}
+   \item Renumbers in Fortran numerotation (base 1) if needed (base 0)
+   \item Can scale the matrix if compiled with \texttt{-DMC64 -DSCALING} (untested)
+   \item Checks the symetry of the graph in non symmetric mode.
+     With non distributed matrices, with $flagcor == API\_YES$, 
+     tries to correct the matrix.
+   \item sort the CSC.
+  \end{itemize}
+
+
+  In fortran, with correction enable, CSC array can be reallocated.\\
+  \pastix{} works on a copy of the CSC and stores it internaly if the
+  number of entries changed.\\
+  If the number of entries changed ($colptr[n]-1$), user as to
+  reallocate rows and avals and then call
+  PASTIX\_FORTRAN\_CHECKMATRIX\_END().
+}

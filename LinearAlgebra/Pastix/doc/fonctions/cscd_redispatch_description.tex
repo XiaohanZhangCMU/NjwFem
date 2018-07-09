@@ -1,0 +1,27 @@
+\descript{
+           Redistribute the first cscd, distributed with \texttt{l2g}
+           local to global array, into a new one using \texttt{dl2g}
+           as local to global array.
+}
+         {
+           Redistribute the first cscd, distributed with \texttt{l2g}
+           local to global array, into a new one using \texttt{dl2g}
+           as local to global array.
+           
+           The algorithm works in four main steps :
+           \begin{itemize}
+           \item gather all new loc2globs on all processors;
+           \item allocate \texttt{dia}, \texttt{dja} and \texttt{da};
+           \item Create new CSC for each processor and send it;
+           \item Merge all new CSC to the new local CSC with \texttt{cscd\_addlocal()}.
+           \end{itemize}
+           
+           If communicator size is one, check that $n = dn$ and 
+           $l2g = dl2g$ and simply create a copy of the first CSCD.
+
+           In Fortran the function as to be called in to step, the
+           first one, \texttt{CSCD\_REDISPATCH\_FORTRAN}, to compute the
+           new CSCD, and the second one,
+           \texttt{CSCD\_REDISPATCH\_FORTRAN\_END} to copy the
+           computed CSCD into the user allocated structure.
+}

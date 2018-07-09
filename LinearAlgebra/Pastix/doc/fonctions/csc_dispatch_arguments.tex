@@ -1,0 +1,18 @@
+\begin{arguments}
+  \argdesc{gN                }{Global CSC matrix number of columns.}
+  \argdesc{gcolptr, grows, gavals}{Global CSC matrix}
+  \argdesc{gperm             }{Permutation table for global CSC matrix.}
+  \argdesc{ginvp             }{Inverse permutation table for global CSC matrix.}
+  \argdesc{lN                }{Local number of columns (output).}
+  \argdesc{lcolptr, lrows, lavals}{Local CSCD matrix (output).}
+  \argdesc{lrhs              }{Local part of the right hand side (output).}
+  \argdesc{lperm             }{Local part of the permutation table (output).}
+  \argdesc{loc2glob          }{Global numbers of local columns (before permutation).}
+  \argdesc{dispatch          }{Dispatching mode: 
+    \begin{description} 
+    \item[\hskip 0.4cm \texttt{CSC\_DISP\_SIMPLE}] Cut in $n_{proc}$ parts of consecutive columns
+    \item[\hskip 0.4cm \texttt{CSC\_DISP\_CYCLIC}] Use a cyclic distribution.
+    \end{description}
+  }
+  \argdesc{pastix\_comm      }{PaStiX MPI communicator.}
+\end{arguments}
